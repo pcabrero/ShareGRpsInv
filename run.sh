@@ -2,7 +2,7 @@
 
 file="mediaset-share-1.0.4.jar"
 input_path="./target/$file"
-output_path="/tmp/workspace/mediaset"
+output_path="/tmp/workspace_julio/mediaset"
 root_pom_path="."
 ssh_user="julio"
 

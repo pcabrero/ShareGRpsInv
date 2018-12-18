@@ -3,7 +3,7 @@ package es.pue.mediaset.share
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import java.util.Properties
 
-import org.apache.spark.sql.functions.{col, unix_timestamp}
+import org.apache.spark.sql.functions.{col, unix_timestamp, from_utc_timestamp}
 import org.apache.spark.sql.types._
 
 class Salesforce {
@@ -12,8 +12,13 @@ class Salesforce {
   var username = ""
   var password = ""
 
+  var timezone = "UTC"
+
   val query_dim_linea_negocio = "select COD_COMUNICACION__c, COD_TIPOLOGIA__c, cod_tp_categr_km__c, cod_tp_computo_km__c, cod_tp_lineanegocio_km__c, DES_COMUNICACION__c, DES_TIPOLOGIA__c, FECHA_FIN__c, FECHA_INI__c, nom_tp_categr_km__c, nom_tp_computo_km__c, nom_tp_lineanegocio_km__c FROM dim_linea_negocio__c"
+
+//  val query_dim_agrup_cadenas = "select COD_CADENA__c, COD_GRUPO_N0__c, COD_GRUPO_N1__c, COD_GRUPO_N2__c, DES_CADENA__c, DES_GRUPO_N0__c, DES_GRUPO_N1__c, DES_GRUPO_N2__c, FECHA_FIN__c, FECHA_INI__c, COD_FORTA__c, DES_FORTA__c FROM DIM_AGRUP_CADENAS__c"
   val query_dim_agrup_cadenas = "select COD_CADENA__c, COD_GRUPO_N0__c, COD_GRUPO_N1__c, COD_GRUPO_N2__c, DES_CADENA__c, DES_GRUPO_N0__c, DES_GRUPO_N1__c, DES_GRUPO_N2__c, FECHA_FIN__c, FECHA_INI__c, COD_FORTA__c, DES_FORTA__c FROM DIM_AGRUP_CADENAS__c"
+
   val query_tb_parametros = "select DES_PARAMETRO__c, FECHA_FIN__c, FECHA_INI__c, NOM_PARAM__c, VALOR__c FROM NOM_PARAM__c"
   val query_tb_coeficientes = "select Anyo__c, COEFICIENTE__c, DES_CADENA__c, FECHA_ACT__c, FECHA_FIN__c, FECHA_INI__c, FLAG__c, INDICE__c, MAX_RANGO__c, Mes__c, MIN_RANGO__c FROM TABLA_COEFICIENTE__c"
   val query_tb_configuraciones = "select COD_ACCION__c, COD_ANUNCIANTE_KANTAR__c, COD_ANUNCIANTE_PE__c, COD_CADENA__c, COD_CAMPANA__c, COD_PROGRAMA__c, COD_TIPOLOGIA__c, DES_ACCION__c, DES_ANUNCIANTE_KANTAR__c, DES_ANUNCIANTE_PE__c, DES_CADENA__c, DES_CAMPANA__c, DES_PROGRAMA__c, DES_TIPOLOGIA__c, FECHA_FIN__c, FECHA_INI__c, IIEE2_Formato__c FROM TB_CONFIGURACIONES__c"
@@ -25,7 +30,7 @@ class Salesforce {
   val query_cat_coeficientes = "select Name, DES_COEF__c, FECHA_FIN__c, FECHA_INI__c FROM CAT_COEFICIENTES__c"
   val query_cat_nuevas_cadenas = "select Name, DES_CADENA_N__c, FECHA_FIN__c, FECHA_INI__c FROM CAT_NUEVAS_CADENAS__c"
 
-  //  login: String,username: String, password: String, query: String
+
   def setCredentials(cfg : Properties, environment : String) : Unit = {
 
     // Salesforce credencials
@@ -34,9 +39,14 @@ class Salesforce {
     password = cfg.getProperty("sf.password." + environment)
   }
 
+  def setTimeZone(timezone : String) : Unit = {
+    this.timezone = timezone
+  }
+
   def getDataFrame(spark: SparkSession, query : String ): DataFrame = {
     spark.read.format("com.springml.salesforce").option("login", login).option("username", username).option("password", password).option("soql", query).option("version", "37.0").load()
   }
+
 
   def get_dim_linea_negocio(spark: SparkSession, query: String): DataFrame = {
 
@@ -67,8 +77,9 @@ class Salesforce {
       .withColumn("nom_tp_computo_km", col("nom_tp_computo_km").cast(StringType))
       .withColumn("cod_comunicacion", col("cod_comunicacion").cast(IntegerType))
       .withColumn("cod_comunicacion", col("cod_comunicacion").cast(IntegerType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
+
   }
 
   def get_dim_agrup_cadenas(spark: SparkSession, query: String): DataFrame = {
@@ -98,14 +109,14 @@ class Salesforce {
       .withColumn("des_cadena", col("des_cadena").cast(StringType))
       .withColumn("cod_forta", col("cod_forta").cast(IntegerType))
       .withColumn("des_forta", col("des_forta").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
+
   }
 
   def get_tb_parametros(spark: SparkSession, query: String): DataFrame = {
 
     val tb_parametros = getDataFrame(spark, query)
-
     tb_parametros
       .withColumnRenamed("DES_PARAMETRO__c", "DES_PARAMETRO" )
       .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
@@ -115,8 +126,8 @@ class Salesforce {
       .withColumn("DES_PARAMETRO", col("DES_PARAMETRO").cast(StringType))
       .withColumn("NOM_PARAM", col("NOM_PARAM").cast(StringType))
       .withColumn("VALOR", col("VALOR").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
   }
 
@@ -139,14 +150,14 @@ class Salesforce {
       .withColumn("Anyo", col("Anyo").cast(StringType))
       .withColumn("COEFICIENTE", col("COEFICIENTE").cast(StringType))
       .withColumn("DES_CADENA", col("DES_CADENA").cast(StringType))
-      .withColumn("FECHA_ACT", unix_timestamp(col("FECHA_ACT"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("FECHA_ACT", from_utc_timestamp(unix_timestamp(col("FECHA_ACT"), "yyyy-MM-dd").cast(TimestampType), timezone))
       .withColumn("FLAG", col("FLAG").cast(IntegerType))
       .withColumn("INDICE", col("INDICE").cast(StringType))
       .withColumn("MAX_RANGO", col("MAX_RANGO").cast(StringType))
       .withColumn("Mes", col("Mes").cast(StringType))
       .withColumn("MIN_RANGO", col("MIN_RANGO").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
   }
 
@@ -186,8 +197,8 @@ class Salesforce {
       .withColumn("DES_CAMPANA", col("DES_CAMPANA").cast(StringType))
       .withColumn("DES_PROGRAMA", col("DES_PROGRAMA").cast(StringType))
       .withColumn("DES_TIPOLOGIA", col("DES_TIPOLOGIA").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
       .withColumn("IIEE2_Formato", col("IIEE2_Formato").cast(StringType))
 
   }
@@ -213,8 +224,8 @@ class Salesforce {
       .withColumn("DES_EVENTO", col("DES_EVENTO").cast(StringType))
       .withColumn("DES_PROGRAMA", col("DES_PROGRAMA").cast(StringType))
       .withColumn("FLAG", col("FLAG").cast(IntegerType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
   }
 
   def get_cat_gr_cadenas_n2(spark: SparkSession, query: String): DataFrame = {
@@ -229,8 +240,8 @@ class Salesforce {
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_GRUPO_N2", col("COD_GRUPO_N2").cast(LongType))
       .withColumn("DES_GRUPO_N2", col("DES_GRUPO_N2").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
   }
 
@@ -245,8 +256,8 @@ class Salesforce {
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_GRUPO_N1", col("COD_GRUPO_N1").cast(IntegerType))
       .withColumn("DES_GRUPO_N1", col("DES_GRUPO_N1").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
   }
 
   def get_cat_gr_cadenas(spark: SparkSession, query: String): DataFrame = {
@@ -260,8 +271,8 @@ class Salesforce {
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_GRUPO_N0", col("COD_GRUPO_N0").cast(IntegerType))
       .withColumn("DES_GRUPO_N0", col("DES_GRUPO_N0").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
   }
 
@@ -279,9 +290,9 @@ class Salesforce {
       .withColumn("COD_EVENTO", col("COD_EVENTO").cast(IntegerType))
       .withColumn("ACTIVO", col("ACTIVO").cast(StringType))
       .withColumn("DES_EVENTO", col("DES_EVENTO").cast(StringType))
-      .withColumn("INDICE_", col("INDICE").cast(DoubleType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("INDICE_", col("INDICE").cast(BooleanType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
   }
 
   def get_cat_coeficientes(spark: SparkSession, query: String): DataFrame = {
@@ -295,8 +306,8 @@ class Salesforce {
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_COEF", col("COD_COEF").cast(IntegerType))
       .withColumn("DES_COEF", col("DES_COEF").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
   }
 
@@ -311,8 +322,8 @@ class Salesforce {
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_CADENA_NUEVA", col("COD_CADENA_NUEVA").cast(IntegerType))
       .withColumn("DES_CADENA_N", col("DES_CADENA_N").cast(StringType))
-      .withColumn("fecha_ini", unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType))
-      .withColumn("fecha_fin", unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType))
+      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
+      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
   }
 
