@@ -40,7 +40,11 @@ class Salesforce {
   }
 
   def setTimeZone(timezone : String) : Unit = {
-    this.timezone = timezone
+    
+    if(timezone != null){
+        this.timezone = timezone
+    } 
+
   }
 
   def getDataFrame(spark: SparkSession, query : String ): DataFrame = {
@@ -85,6 +89,8 @@ class Salesforce {
   def get_dim_agrup_cadenas(spark: SparkSession, query: String): DataFrame = {
 
     val dim_agrup_cadenas = getDataFrame(spark, query)
+
+    println("TIMEZONE: " + timezone)
 
     dim_agrup_cadenas
       .withColumnRenamed("des_grupo_n1__c", "des_grupo_n1" )
