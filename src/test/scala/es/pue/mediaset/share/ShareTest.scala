@@ -4,117 +4,288 @@ import es.pue.mediaset.share.Share.{Configuraciones, LineaNegocio, AgrupCadenas,
 import org.junit.Test
 import org.junit.Assert._
 
-
 class ShareTest {
 
-  //  FN_nom_tp_computo_km
-  val param_tipologias_duracion: Array[Int] = Array(4, 5)
-  val param_duracion_iiee: Int = 100
-  val fecha_dia: Long = 900000000
-  val cod_tipologia: Int = 4
-  val cod_comunicacion: Int = 4
-  val duracion: Int = 90
+  @Test
+  // LineaNegocio is empty
+  def FN_cod_tp_computo_km_t1(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 0L
+    val LN_des_comunicacion = 0L
+    val LN_des_tipologia = 0L
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 90
 
 
+    assertEquals(3005L, Share.FN_cod_tp_computo_km(
+      List(), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia, duracion ))
+
+  }
+
+  @Test
+  // Match encontrado AND duracion < param_duracion_iiee
+  def FN_cod_tp_computo_km_t2(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(0, 4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 90
+
+    assertEquals(3002L, Share.FN_cod_tp_computo_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
+
+  }
+
+
+  @Test
+  // Match encontrado AND duracion >= param_duracion_iiee
+  def FN_cod_tp_computo_km_t3(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(0, 4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 120
+
+    assertEquals(3003L, Share.FN_cod_tp_computo_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
+
+  }
+
+
+  @Test
+  // Match encontrado PERO param_tipologias_duracion NOT CONTAIN cod_tipologia
+  def FN_cod_tp_computo_km_t4(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 120
+
+    assertEquals(0L, Share.FN_cod_tp_computo_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
+
+  }
   //*****************************************************************************************
-//
-//  @Test
-//  // Match no encontrado. Valor por defecto
-//  def FN_cod_tp_computo_km_t1(): Unit = {
-//
-//    assertEquals(3005L, Share.FN_cod_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 13L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 325035900, 915145200, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, cod_tipologia, cod_comunicacion, duracion))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado && cod_tipologia IN param_tipologias_duracion && duracion < param_duracion_iiee
-//  def FN_cod_tp_computo_km_t2(): Unit = {
-//
-//    assertEquals(3002L, Share.FN_cod_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 4L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 915145200, 325035900, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, 4, 1, 60))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado && cod_tipologia IN param_tipologias_duracion && duracion >= param_duracion_iiee
-//  def FN_cod_tp_computo_km_t3(): Unit = {
-//
-//    assertEquals(3003L, Share.FN_cod_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 4L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 915145200, 325035900, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, 4, 1, 100))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado && cod_tipologia NOT IN param_tipologias_duracion
-//  def FN_cod_tp_computo_km_t4(): Unit = {
-//
-//    assertEquals(3001L, Share.FN_cod_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 101010L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 915145200, 325035900, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, 101010, 1, duracion))
-//
-//  }
-//
-//  //*****************************************************************************************
-//
-//  @Test
-//  // Match no encontrado. Valor por defecto
-//  def FN_nom_tp_computo_km_t1(): Unit = {
-//
-//    assertEquals("Sin Especificar", Share.FN_nom_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 13L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 325035900, 915145200, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, cod_tipologia, cod_comunicacion, duracion))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado && cod_tipologia IN param_tipologias_duracion && duracion < param_duracion_iiee
-//  def FN_nom_tp_computo_km_t2(): Unit = {
-//
-//    assertEquals("IIEE 12'", Share.FN_nom_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 4L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 915145200, 325035900, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, 4, 1, 60))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado && cod_tipologia IN param_tipologias_duracion && duracion > param_duracion_iiee
-//  def FN_nom_tp_computo_km_t3(): Unit = {
-//
-//    assertEquals("IIEE 3'", Share.FN_nom_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 4L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 915145200, 325035900, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, 4, 1, 100))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado && cod_tipologia NOT IN param_tipologias_duracion
-//  def FN_nom_tp_computo_km_t4(): Unit = {
-//
-//    assertEquals("CONVENCIONAL", Share.FN_nom_tp_computo_km(
-//      List(
-//        LineaNegocio(1L, 101010L, 2001L, 3001L, 1001L, "NORMAL", "OTROS NO SOLAPADO", 915145200, 325035900, "CONVENCIONAL", "CONVENCIONAL", "CONVENCIONAL")
-//      ),
-//      param_tipologias_duracion, param_duracion_iiee, fecha_dia, 101010, 1, duracion))
-//
-//  }
+
+  @Test
+  // LineaNegocio is empty
+  def FN_nom_tp_computo_km_t1(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 0L
+    val LN_des_comunicacion = 0L
+    val LN_des_tipologia = 0L
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 90
+
+
+    assertEquals("SIN ESPECIFICAR", Share.FN_nom_tp_computo_km(
+      List(), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia, duracion ))
+
+  }
+
+  @Test
+  // Match encontrado AND duracion < param_duracion_iiee
+  def FN_nom_tp_computo_km_t2(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(0, 4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 90
+
+    assertEquals("IIEE 12'", Share.FN_nom_tp_computo_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
+
+  }
+
+  @Test
+  // Match encontrado AND duracion >= param_duracion_iiee
+  def FN_nom_tp_computo_km_t3(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(0, 4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 120
+
+    assertEquals("IIEE 3'", Share.FN_nom_tp_computo_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
+
+  }
+
+
+  @Test
+  // Match encontrado PERO param_tipologias_duracion NOT CONTAIN cod_tipologia
+  def FN_nom_tp_computo_km_t4(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+    val param_tipologias_duracion: Array[Int] = Array(4, 5)
+    val param_duracion_iiee: Int = 100
+    val duracion: Int = 120
+
+    assertEquals("mmm", Share.FN_nom_tp_computo_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ), param_tipologias_duracion, param_duracion_iiee,
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
+
+  }
+
 
   //*****************************************************************************************
 
@@ -451,402 +622,393 @@ class ShareTest {
   }
 
   //*****************************************************************************************
-//
-//  @Test
-//  // LineaNegocio is empty
-//  def FN_cod_lineanegocio_km_t1(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 0L
-//    val LN_des_comunicacion = 0L
-//    val LN_des_tipologia = 0L
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//
-//    assertEquals(0L, Share.FN_cod_tp_lineanegocio_km(
-//      List(),
-//      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado debe devolver el valor de elem.cod_tp_lineanegocio_km
-//  def FN_cod_lineanegocio_km_t2(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals(100, Share.FN_cod_tp_lineanegocio_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
-//
-//  }
-//
-//  @Test
-//  // Match NO encontrado debe devolver 1003L
-//  def FN_cod_lineanegocio_km_t3(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals(1003, Share.FN_cod_tp_lineanegocio_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, cod_tipologia, cod_comunicacion))
-//
-//  }
-//
-//  //*****************************************************************************************
-//
-//
-//  @Test
-//  // LineaNegocio is empty
-//  def FN_nom_lineanegocio_km_t1(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 0L
-//    val LN_des_comunicacion = 0L
-//    val LN_des_tipologia = 0L
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//
-//    assertEquals("", Share.FN_nom_tp_lineanegocio_km(
-//      List(),
-//      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado debe devolver el valor de elem.nom_tp_lineanegocio_km
-//  def FN_nom_lineanegocio_km_t2(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals("GOL", Share.FN_nom_tp_lineanegocio_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
-//
-//  }
-//
-//  @Test
-//  // Match NO encontrado debe devolver "Sin Especificar"
-//  def FN_nom_lineanegocio_km_t3(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals("Sin Especificar", Share.FN_nom_tp_lineanegocio_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, cod_tipologia, cod_comunicacion))
-//
-//  }
-//
-//  //*****************************************************************************************
-//
-//
-//  @Test
-//  // LineaNegocio is empty
-//  def FN_cod_tp_categr_km_t1(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 0L
-//    val LN_des_comunicacion = 0L
-//    val LN_des_tipologia = 0L
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//
-//    assertEquals(0, Share.FN_cod_tp_categr_km(
-//      List(),
-//      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado debe devolver el valor de elem.cod_tp_categr_km
-//  def FN_cod_tp_categr_km_t2(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 100L // Debe devolver este valor
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 10L
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals(100, Share.FN_cod_tp_categr_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
-//
-//  }
-//
-//  @Test
-//  // Match NO encontrado debe devolver 2006L
-//  def FN_cod_tp_categr_km_t3(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 100L
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals(2006, Share.FN_cod_tp_categr_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, cod_tipologia, cod_comunicacion))
-//
-//  }
-//
-//  //*****************************************************************************************
-//
-//
-//  @Test
-//  // LineaNegocio is empty
-//  def FN_nom_tp_categr_km_t1(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 0L
-//    val LN_des_comunicacion = 0L
-//    val LN_des_tipologia = 0L
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//
-//    assertEquals("", Share.FN_nom_tp_categr_km(
-//      List(),
-//      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
-//
-//  }
-//
-//  @Test
-//  // Match encontrado debe devolver el valor de elem.nom_tp_categr_km
-//  def FN_nom_tp_categr_km_t2(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 100L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 10L
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee" // Debe devolver este valor
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals("eeee", Share.FN_nom_tp_categr_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
-//
-//  }
-//
-//  @Test
-//  // Match NO encontrado debe devolver "Sin Especificar"
-//  def FN_nom_tp_categr_km_t3(): Unit = {
-//
-//    // LineaNegocio
-//    val LN_cod_comunicacion = 123L
-//    val LN_cod_tipologia = 0L
-//    val LN_cod_tp_categr_km = 0L
-//    val LN_cod_tp_computo_km = 0L
-//    val LN_cod_tp_lineanegocio_km = 100L
-//    val LN_des_comunicacion = "aaaa"
-//    val LN_des_tipologia = "bbbb"
-//    val LN_fecha_fin = 2L
-//    val LN_fecha_ini = 0L
-//    val LN_nom_tp_categr_km = "eeee"
-//    val LN_nom_tp_computo_km = "mmm"
-//    val LN_nom_tp_lineanegocio_km = "GOL"
-//
-//    // fctd_share_grps
-//    val fecha_dia = 1L
-//    val cod_tipologia = 20L
-//    val cod_comunicacion = 15L
-//
-//    assertEquals("Sin Especificar", Share.FN_nom_tp_categr_km(
-//      List(
-//        LineaNegocio(LN_cod_comunicacion, LN_cod_tipologia, LN_cod_tp_categr_km, LN_cod_tp_computo_km,
-//          LN_cod_tp_lineanegocio_km, LN_des_comunicacion, LN_des_tipologia, LN_fecha_fin, LN_fecha_ini,
-//          LN_nom_tp_categr_km, LN_nom_tp_computo_km, LN_nom_tp_lineanegocio_km)
-//      ),
-//      fecha_dia, cod_tipologia, cod_comunicacion))
-//
-//  }
+
+  @Test
+  // LineaNegocio is empty
+  def FN_cod_lineanegocio_km_t1(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 0L
+    val LN_des_comunicacion = 0L
+    val LN_des_tipologia = 0L
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+
+    assertEquals(1003L, Share.FN_cod_tp_lineanegocio_km(
+      List(),
+      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
+
+  }
+
+  @Test
+  // Match encontrado debe devolver el valor de elem.cod_tp_lineanegocio_km
+  def FN_cod_lineanegocio_km_t2(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals(100, Share.FN_cod_tp_lineanegocio_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ),
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
+
+  }
+
+  @Test
+  // Match NO encontrado debe devolver 1003L
+  def FN_cod_lineanegocio_km_t3(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals(1003, Share.FN_cod_tp_lineanegocio_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ),
+      fecha_dia, cod_tipologia, cod_comunicacion))
+
+  }
 
   //*****************************************************************************************
 
+
+  @Test
+  // LineaNegocio is empty
+  def FN_nom_lineanegocio_km_t1(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 0L
+    val LN_des_comunicacion = 0L
+    val LN_des_tipologia = 0L
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+
+    assertEquals("SIN ESPECIFICAR", Share.FN_nom_tp_lineanegocio_km(
+      List(),
+      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
+
+  }
+
+  @Test
+  // Match encontrado debe devolver el valor de elem.nom_tp_lineanegocio_km
+  def FN_nom_lineanegocio_km_t2(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals("GOL", Share.FN_nom_tp_lineanegocio_km(
+      List(
+      LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+        LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+    ),
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
+
+  }
+
+  @Test
+  // Match NO encontrado debe devolver "SIN ESPECIFICAR"
+  def FN_nom_lineanegocio_km_t3(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L // Debe devolver este valor
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals("SIN ESPECIFICAR", Share.FN_nom_tp_lineanegocio_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ),
+      fecha_dia, cod_tipologia, cod_comunicacion))
+
+  }
+
+  //*****************************************************************************************
+
+
+  @Test
+  // LineaNegocio is empty
+  def FN_cod_tp_categr_km_t1(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 0L
+    val LN_des_comunicacion = 0L
+    val LN_des_tipologia = 0L
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+
+    assertEquals(2006L, Share.FN_cod_tp_categr_km(
+      List(),
+      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
+
+  }
+
+  @Test
+  // Match encontrado debe devolver el valor de elem.cod_tp_categr_km
+  def FN_cod_tp_categr_km_t2(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 100L // Debe devolver este valor
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 10L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals(100, Share.FN_cod_tp_categr_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ),
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
+
+  }
+
+  @Test
+  // Match NO encontrado debe devolver 2006L
+  def FN_cod_tp_categr_km_t3(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals(2006, Share.FN_cod_tp_categr_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ),
+      fecha_dia, cod_tipologia, cod_comunicacion))
+
+  }
+
+  //*****************************************************************************************
+
+
+  @Test
+  // LineaNegocio is empty
+  def FN_nom_tp_categr_km_t1(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 0L
+    val LN_des_comunicacion = 0L
+    val LN_des_tipologia = 0L
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+
+    assertEquals("SIN ESPECIFICAR", Share.FN_nom_tp_categr_km(
+      List(),
+      fecha_dia, LN_cod_comunicacion, LN_cod_tipologia ))
+
+  }
+
+  @Test
+  // Match encontrado debe devolver el valor de elem.nom_tp_categr_km
+  def FN_nom_tp_categr_km_t2(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 100L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 10L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee" // Debe devolver este valor
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals("eeee", Share.FN_nom_tp_categr_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ),
+      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion))
+
+  }
+
+  @Test
+  // Match NO encontrado debe devolver "SIN ESPECIFICAR"
+  def FN_nom_tp_categr_km_t3(): Unit = {
+
+    // LineaNegocio
+    val LN_cod_comunicacion = 123L
+    val LN_cod_tipologia = 0L
+    val LN_cod_tp_categr_km = 0L
+    val LN_cod_tp_computo_km = 0L
+    val LN_cod_tp_lineanegocio_km = 100L
+    val LN_des_comunicacion = "aaaa"
+    val LN_des_tipologia = "bbbb"
+    val LN_fecha_fin = 2L
+    val LN_fecha_ini = 0L
+    val LN_nom_tp_categr_km = "eeee"
+    val LN_nom_tp_computo_km = "mmm"
+    val LN_nom_tp_lineanegocio_km = "GOL"
+
+    // fctd_share_grps
+    val fecha_dia = 1L
+    val cod_tipologia = 20L
+    val cod_comunicacion = 15L
+
+    assertEquals("SIN ESPECIFICAR", Share.FN_nom_tp_categr_km(
+      List(
+        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
+          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
+      ),
+      fecha_dia, cod_tipologia, cod_comunicacion))
+
+  }
+
+  //*****************************************************************************************
 
   @Test
   // AgrupCadenas is empty
@@ -872,13 +1034,13 @@ class ShareTest {
 
 
     assertEquals(0L, Share.FN_cod_fg_autonomica(
-      List(),
+      List(), List[Long](5L, 10L, 3L, 4L),
       fecha_dia, cod_cadena ))
 
   }
 
   @Test
-  // elem.cod_grupo_n2 == 30006 AND match encontrado
+  // cod_cadena está dentro de las cadenas autonómicas Match encontrado
   def FN_cod_fg_autonomica_t2(): Unit = {
 
     // AgrupCadenas
@@ -889,7 +1051,7 @@ class ShareTest {
     val AC_des_forta = "forta"
     val AC_cod_cadena = 0L
     val AC_cod_grupo_n0 = 0L
-    val AC_cod_grupo_n2 = 30006L // Es 30006 y es igual a cod_cadena
+    val AC_cod_grupo_n2 = 0L
     val AC_cod_grupo_n1 = 0L
     val AC_des_cadena = "eeee"
     val AC_fecha_fin = 2L
@@ -903,13 +1065,13 @@ class ShareTest {
       List(
         AgrupCadenas(AC_des_grupo_n1, AC_des_grupo_n2, AC_des_grupo_n0, AC_fecha_fin, AC_cod_forta,
           AC_des_forta, AC_cod_cadena, AC_cod_grupo_n0, AC_fecha_ini, AC_cod_grupo_n2, AC_cod_grupo_n1, AC_des_cadena)
-      ),
-      fecha_dia, AC_cod_cadena ))
+      ), List[Long](5L, 10L, 3L, 4L),
+      fecha_dia, cod_cadena ))
 
   }
 
   @Test
-  // elem.cod_grupo_n2 != 30006
+  // cod_cadena  NO está dentro de las cadenas autonómicas Match  no encontrado
   def FN_cod_fg_autonomica_t3(): Unit = {
 
     // AgrupCadenas
@@ -920,7 +1082,7 @@ class ShareTest {
     val AC_des_forta = "forta"
     val AC_cod_cadena = 0L
     val AC_cod_grupo_n0 = 0L
-    val AC_cod_grupo_n2 = 4000006L // No es 30006
+    val AC_cod_grupo_n2 = 400L
     val AC_cod_grupo_n1 = 0L
     val AC_des_cadena = "eeee"
     val AC_fecha_fin = 2L
@@ -934,13 +1096,13 @@ class ShareTest {
       List(
         AgrupCadenas(AC_des_grupo_n1, AC_des_grupo_n2, AC_des_grupo_n0, AC_fecha_fin, AC_cod_forta,
           AC_des_forta, AC_cod_cadena, AC_cod_grupo_n0, AC_fecha_ini, AC_cod_grupo_n2, AC_cod_grupo_n1, AC_des_cadena)
-      ),
-      fecha_dia, AC_cod_cadena ))
+      ), List[Long](0L, 5L, 9L, 100L),
+      fecha_dia, cod_cadena ))
 
   }
 
   @Test
-  // elem.cod_grupo_n2 == 30006 AND match NO encontrado
+  // cod_cadena está dentro de las cadenas autonómicas Pero las fechas no coinciden
   def FN_cod_fg_autonomica_t4(): Unit = {
 
     // AgrupCadenas
@@ -951,32 +1113,26 @@ class ShareTest {
     val AC_des_forta = "forta"
     val AC_cod_cadena = 0L
     val AC_cod_grupo_n0 = 0L
-    val AC_cod_grupo_n2 = 30006L // Es 30006 y pero no se cumple cod_cadena
+    val AC_cod_grupo_n2 = 30L
     val AC_cod_grupo_n1 = 0L
     val AC_des_cadena = "eeee"
     val AC_fecha_fin = 2L
     val AC_fecha_ini = 0L
 
     // fctd_share_grps
-    val fecha_dia = 1L
+    val fecha_dia = 5L
     val cod_cadena = 10L
 
     assertEquals(0, Share.FN_cod_fg_autonomica(
       List(
         AgrupCadenas(AC_des_grupo_n1, AC_des_grupo_n2, AC_des_grupo_n0, AC_fecha_fin, AC_cod_forta,
           AC_des_forta, AC_cod_cadena, AC_cod_grupo_n0, AC_fecha_ini, AC_cod_grupo_n2, AC_cod_grupo_n1, AC_des_cadena)
-      ),
+      ), List[Long](5L, 3L, 10L),
       fecha_dia, cod_cadena ))
 
   }
 
   //*****************************************************************************************
-
-
-  // TODO nom_fg_autonomica
-
-  //*****************************************************************************************
-
 
   @Test
   // AgrupCadenas is empty
@@ -1000,26 +1156,25 @@ class ShareTest {
     val fecha_dia = 1L
     val cod_cadena = 10L
 
-
     assertEquals(0, Share.FN_cod_fg_forta(
-      List(),
+      List(), List[Long](5L, 10L, 3L),
       fecha_dia, cod_cadena ))
 
   }
 
   @Test
-  // elem.cod_forta == 1 AND match encontrado
+  // cod_cadena está dentro de los códigos de cadenas forta Match encontrado
   def FN_cod_fg_forta_t2(): Unit = {
 
     // AgrupCadenas
     val AC_des_grupo_n1 = "n1"
     val AC_des_grupo_n2 = "n2"
     val AC_des_grupo_n0 = "n0"
-    val AC_cod_forta = 1L // Es 1 y match en cod_cadena
+    val AC_cod_forta = 2L
     val AC_des_forta = "forta"
     val AC_cod_cadena = 0L
     val AC_cod_grupo_n0 = 0L
-    val AC_cod_grupo_n2 = 30006L
+    val AC_cod_grupo_n2 = 306L
     val AC_cod_grupo_n1 = 0L
     val AC_des_cadena = "eeee"
     val AC_fecha_fin = 2L
@@ -1033,20 +1188,20 @@ class ShareTest {
       List(
         AgrupCadenas(AC_des_grupo_n1, AC_des_grupo_n2, AC_des_grupo_n0, AC_fecha_fin, AC_cod_forta,
           AC_des_forta, AC_cod_cadena, AC_cod_grupo_n0, AC_fecha_ini, AC_cod_grupo_n2, AC_cod_grupo_n1, AC_des_cadena)
-      ),
-      fecha_dia, AC_cod_cadena ))
+      ), List[Long](0L, 5L, 10L),
+      fecha_dia, cod_cadena ))
 
   }
 
   @Test
-  // elem.cod_forta != 1
+  // cod_cadena NO está dentro de los códigos de cadenas forta Match  NO encontrado
   def FN_cod_fg_forta_t3(): Unit = {
 
     // AgrupCadenas
     val AC_des_grupo_n1 = "n1"
     val AC_des_grupo_n2 = "n2"
     val AC_des_grupo_n0 = "n0"
-    val AC_cod_forta = 1000L // No es 1
+    val AC_cod_forta = 1000L
     val AC_des_forta = "forta"
     val AC_cod_cadena = 0L
     val AC_cod_grupo_n0 = 0L
@@ -1064,20 +1219,20 @@ class ShareTest {
       List(
         AgrupCadenas(AC_des_grupo_n1, AC_des_grupo_n2, AC_des_grupo_n0, AC_fecha_fin, AC_cod_forta,
           AC_des_forta, AC_cod_cadena, AC_cod_grupo_n0, AC_fecha_ini, AC_cod_grupo_n2, AC_cod_grupo_n1, AC_des_cadena)
-      ),
-      fecha_dia, AC_cod_cadena ))
+      ), List[Long](100L, 5L, 200L),
+      fecha_dia, cod_cadena ))
 
   }
 
   @Test
-  // elem.cod_forta == 1 AND match NO encontrado
+  // cod_cadena está dentro de las cadenas autonómicas Pero las fechas no coinciden
   def FN_cod_fg_forta_t4(): Unit = {
 
     // AgrupCadenas
     val AC_des_grupo_n1 = "n1"
     val AC_des_grupo_n2 = "n2"
     val AC_des_grupo_n0 = "n0"
-    val AC_cod_forta = 1L // Es 1 pero no hay match con cod_cadena
+    val AC_cod_forta = 1L
     val AC_des_forta = "forta"
     val AC_cod_cadena = 0L
     val AC_cod_grupo_n0 = 0L
@@ -1088,25 +1243,19 @@ class ShareTest {
     val AC_fecha_ini = 0L
 
     // fctd_share_grps
-    val fecha_dia = 1L
+    val fecha_dia = 3L
     val cod_cadena = 10L
 
-    assertEquals(0, Share.FN_cod_fg_autonomica(
+    assertEquals(0, Share.FN_cod_fg_forta(
       List(
         AgrupCadenas(AC_des_grupo_n1, AC_des_grupo_n2, AC_des_grupo_n0, AC_fecha_fin, AC_cod_forta,
           AC_des_forta, AC_cod_cadena, AC_cod_grupo_n0, AC_fecha_ini, AC_cod_grupo_n2, AC_cod_grupo_n1, AC_des_cadena)
-      ),
+      ), List[Long](10L, 1L, 5000L),
       fecha_dia, cod_cadena ))
 
   }
 
   //*****************************************************************************************
-
-
-  // TODO nom_fg_forta
-
-  //*****************************************************************************************
-
 
   @Test
   // AgrupCadenas is empty

@@ -45,98 +45,110 @@ object Share {
     dim_linea_negocio.createOrReplaceTempView("dim_linea_negocio")
 
     val dim_agrup_cadenas: DataFrame = salesforce.get_dim_agrup_cadenas(spark, salesforce.query_dim_agrup_cadenas)
-    dim_agrup_cadenas.show()
     persistAsTable(dim_agrup_cadenas, parametrizationCfg, "dim_agrup_cadenas")
 
-//    val tb_parametros: DataFrame = salesforce.get_tb_parametros(spark, salesforce.query_tb_parametros)
-//    tb_parametros.createOrReplaceTempView("tb_parametros")
-//
-//    val tb_configuraciones: DataFrame = salesforce.get_tb_configuraciones(spark, salesforce.query_tb_configuraciones)
-//    tb_configuraciones.createOrReplaceTempView("tb_configuraciones")
-//    persistAsTable(tb_configuraciones, parametrizationCfg, "tb_configuraciones")
-//
-//    val tb_eventos: DataFrame = salesforce.get_tb_eventos(spark, salesforce.query_tb_eventos)
-//    tb_eventos.createOrReplaceTempView("tb_eventos")
+    val tb_parametros: DataFrame = salesforce.get_tb_parametros(spark, salesforce.query_tb_parametros)
+    tb_parametros.createOrReplaceTempView("tb_parametros")
+
+    val tb_configuraciones: DataFrame = salesforce.get_tb_configuraciones(spark, salesforce.query_tb_configuraciones)
+    tb_configuraciones.createOrReplaceTempView("tb_configuraciones")
+
+    val tb_eventos: DataFrame = salesforce.get_tb_eventos(spark, salesforce.query_tb_eventos)
+    tb_eventos.createOrReplaceTempView("tb_eventos")
 
     /************************************************************************************************************/
 
-//    import spark.implicits._
-//
-//    // Collecting data from SF
-//    val duracion_iiee = spark.sql("""SELECT valor FROM tb_parametros WHERE nom_param="DURACION_IIEE" """).map(r => r.getString(0)).collect.toList.head.toInt
-//    val tipologias_duracion = spark.sql("""SELECT valor FROM tb_parametros WHERE nom_param="TIPOLOGIAS_DURACION" """).map(r => r.getString(0)).collect.toList.head.split(";").map(x => x.toInt)
-//
-//    val dim_linea_negocio_list = spark.sql("SELECT * FROM dim_linea_negocio").as[LineaNegocio].collect().toList
-//    val configuraciones_list = spark.sql("SELECT * FROM tb_configuraciones").as[Configuraciones].collect().toList
-//    val agrupCadenas_list = spark.sql(s"""SELECT * FROM $output_db.$tbl_dim_agrup_cadenas""").as[AgrupCadenas].collect().toList
-//    val rel_campania_trgt_list = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().toList
-//    val eventos_list = spark.sql("SELECT * FROM tb_eventos").as[Eventos].collect().toList
-//
-//    // Creating broadcast objects to work on the nodes
-//    val BC_param_duracion_iiee = spark.sparkContext.broadcast(duracion_iiee)
-//    val BC_param_tipologias_duracion = spark.sparkContext.broadcast(tipologias_duracion)
-//    val BC_dim_linea_negocio_list = spark.sparkContext.broadcast(dim_linea_negocio_list)
-//    val BC_rel_campania_trgt_list = spark.sparkContext.broadcast(rel_campania_trgt_list)
-//    val BC_eventos_list = spark.sparkContext.broadcast(eventos_list)
-//    val BC_configuraciones_list = spark.sparkContext.broadcast(configuraciones_list)
-//    val BC_agrupCadenas_list = spark.sparkContext.broadcast(agrupCadenas_list)
-//
-//    // Calculo de nuevas columnas
-//    val tmp_fcts_fecha_dia: DataFrame = get_tmp_fcts_fecha_dia(spark, process_month, parametrizationCfg)
-//    tmp_fcts_fecha_dia.createOrReplaceTempView("tmp_fcts_fecha_dia")
-//
-//    val mercado_lineal_dia_agregado: DataFrame = get_mercado_lineal_dia_agregado(spark).
-//      withColumn("fecha_dia", unix_timestamp(col("fecha_dia"), "yyyy-MM-dd").cast(TimestampType))
-//      .withColumn("fecha_dia", from_utc_timestamp(col("fecha_dia"), timezone))
-//
-//    val share_grps_cols_inicial: DataFrame =  mercado_lineal_dia_agregado
-//    registerShareGRPS(share_grps_cols_inicial)
-//
-//    val codigos_de_cadenas_boing: List[Long] = spark.sql("""SELECT DISTINCT cod_anuncio FROM fctd_share_grps WHERE cod_cadena IN ("5176") """).map(r => r.getLong(0)).collect.toList
-//    val BC_codigos_de_cadenas_boing = spark.sparkContext.broadcast(codigos_de_cadenas_boing)
-//
-//    val codigos_de_cadenas_campemimediaset: List[Long] = spark.sql(
-//      s"""SELECT DISTINCT cod_cadena FROM $output_db.$tbl_dim_agrup_cadenas WHERE des_grupo_n1 = "MEDIASET"
-//      """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
-//
-//    val BC_codigos_de_cadenas_campemimediaset: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_campemimediaset)
+    import spark.implicits._
 
-//    val share_grps_cols_1: DataFrame  = getColumn_cod_tp_lineanegocio_km(spark, share_grps_cols_inicial, BC_dim_linea_negocio_list)
-//    val share_grps_cols_1_nom: DataFrame  = getColumn_nom_tp_lineanegocio_km(spark, share_grps_cols_1, BC_dim_linea_negocio_list)
-//
-//    val share_grps_cols_2: DataFrame  = getColumn_cod_tp_categr_km(spark, share_grps_cols_1_nom, BC_dim_linea_negocio_list )
-//    val share_grps_cols_3: DataFrame  = getColumn_nom_tp_categr_km(spark, share_grps_cols_2, BC_dim_linea_negocio_list )
-//
-//    val share_grps_cols_4: DataFrame  = getColumn_cod_fg_autonomica(spark, share_grps_cols_3, BC_agrupCadenas_list )
-//    val share_grps_cols_5: DataFrame  = setNomOnColumn(spark,share_grps_cols_4, "cod_fg_autonomica" , "nom_fg_autonomica")
-//
-//    val share_grps_cols_6: DataFrame  = getColumn_cod_fg_forta(spark, share_grps_cols_5, BC_agrupCadenas_list )
-//    val share_grps_cols_7: DataFrame  = setNomOnColumn(spark,share_grps_cols_6, "cod_fg_forta" , "nom_fg_forta")
-//
-//    val share_grps_cols_8: DataFrame  = getColumn_cod_fg_boing(spark, share_grps_cols_7, BC_agrupCadenas_list, BC_codigos_de_cadenas_boing)
-//    val share_grps_cols_9: DataFrame  = setNomOnColumn(spark,share_grps_cols_8, "cod_fg_boing" , "nom_fg_boing")
-//
-//    val share_grps_cols_10: DataFrame  = getColumn_cod_identif_franja(spark, share_grps_cols_9, BC_configuraciones_list)
-//    val share_grps_cols_10_nom: DataFrame  = getColumn_nom_identif_franja(spark, share_grps_cols_10, BC_configuraciones_list)
-//
-//    val share_grps_cols_11: DataFrame  = getColumn_cod_target_compra(spark, share_grps_cols_10_nom, BC_rel_campania_trgt_list)
-//
-//    val share_grps_cols_12: DataFrame  = getColumn_cod_fg_filtrado(spark, share_grps_cols_11, BC_configuraciones_list)
-//    val share_grps_cols_13: DataFrame = setNomOnColumn_fg_filtrado(spark, share_grps_cols_12, "cod_fg_filtrado", "nom_fg_filtrado")
-//
-//    val share_grps_cols_14: DataFrame  = getColumn_cod_fg_campemimediaset(spark, share_grps_cols_13, BC_agrupCadenas_list, BC_codigos_de_cadenas_campemimediaset)
-//    val share_grps_cols_14_nom: DataFrame  = setNomOnColumn(spark,share_grps_cols_14, "cod_fg_campemimediaset" , "nom_fg_campemimediaset")
-//
-//    val share_grps_cols_15: DataFrame = getColumn_cod_tp_computo_km(spark, share_grps_cols_14_nom, BC_dim_linea_negocio_list, BC_param_tipologias_duracion, BC_param_duracion_iiee)
-//    val share_grps_cols_16: DataFrame = getColumn_nom_tp_computo_km(spark, share_grps_cols_15, BC_dim_linea_negocio_list, BC_param_tipologias_duracion, BC_param_duracion_iiee)
-//
-//    val share_grps_cols_17: DataFrame = getColumn_cod_eventos(spark, share_grps_cols_16, BC_eventos_list)
-//    val share_grps_cols_17_nom: DataFrame = getColumn_nom_eventos(spark, share_grps_cols_17, BC_eventos_list)
-//
-//    val share_grps_cols_18: DataFrame = getColumn_cod_fg_anuncmediaset(spark, share_grps_cols_17_nom, BC_agrupCadenas_list, BC_codigos_de_cadenas_campemimediaset)
-//    val share_grps_cols_18_nom: DataFrame  = setNomOnColumn(spark,share_grps_cols_18, "cod_fg_anuncmediaset" , "nom_fg_anuncmediaset")
-//
-//    persistShareGRPS(share_grps_cols_18_nom,parametrizationCfg) // Persistimos en Hive el ultimo DF y se guarda como tabla en Hive
+    // Collecting data from SF
+    val duracion_iiee = spark.sql("""SELECT valor FROM tb_parametros WHERE nom_param="DURACION_IIEE" """).map(r => r.getString(0)).collect.toList.head.toInt
+    val tipologias_duracion = spark.sql("""SELECT valor FROM tb_parametros WHERE nom_param="TIPOLOGIAS_DURACION" """).map(r => r.getString(0)).collect.toList.head.split(";").map(x => x.toInt)
+
+    val dim_linea_negocio_list = spark.sql("SELECT * FROM dim_linea_negocio").as[LineaNegocio].collect().toList
+    val configuraciones_list = spark.sql("SELECT * FROM tb_configuraciones").as[Configuraciones].collect().toList
+    val agrupCadenas_list = spark.sql(s"""SELECT * FROM $output_db.$tbl_dim_agrup_cadenas""").as[AgrupCadenas].collect().toList
+    val rel_campania_trgt_list = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().toList
+    val eventos_list = spark.sql("SELECT * FROM tb_eventos").as[Eventos].collect().toList
+
+    // Creating broadcast objects to work on the nodes
+    val BC_param_duracion_iiee = spark.sparkContext.broadcast(duracion_iiee)
+    val BC_param_tipologias_duracion = spark.sparkContext.broadcast(tipologias_duracion)
+    val BC_dim_linea_negocio_list = spark.sparkContext.broadcast(dim_linea_negocio_list)
+    val BC_rel_campania_trgt_list = spark.sparkContext.broadcast(rel_campania_trgt_list)
+    val BC_eventos_list = spark.sparkContext.broadcast(eventos_list)
+    val BC_configuraciones_list = spark.sparkContext.broadcast(configuraciones_list)
+    val BC_agrupCadenas_list = spark.sparkContext.broadcast(agrupCadenas_list)
+
+//  Calculo de nuevas columnas
+    val tmp_fcts_fecha_dia: DataFrame = get_tmp_fcts_fecha_dia(spark, process_month, parametrizationCfg)
+    tmp_fcts_fecha_dia.createOrReplaceTempView("tmp_fcts_fecha_dia")
+
+    val mercado_lineal_dia_agregado: DataFrame = get_mercado_lineal_dia_agregado(spark).withColumn("fecha_dia", unix_timestamp(col("fecha_dia"), "yyyy-MM-dd").cast(TimestampType))
+
+    val share_grps_cols_inicial: DataFrame =  mercado_lineal_dia_agregado
+    registerShareGRPS(share_grps_cols_inicial)
+
+    // TODO capturar excepciones
+    val codigos_de_cadenas_boing: List[Long] = spark.sql("""SELECT DISTINCT cod_anuncio FROM fctd_share_grps WHERE cod_cadena IN ("5176") """).map(r => r.getLong(0)).collect.toList
+    val BC_codigos_de_cadenas_boing = spark.sparkContext.broadcast(codigos_de_cadenas_boing)
+
+    // TODO capturar excepciones
+    val codigos_de_cadenas_campemimediaset: List[Long] = spark.sql(
+      s"""SELECT DISTINCT cod_cadena FROM $output_db.$tbl_dim_agrup_cadenas WHERE des_grupo_n1 = "MEDIASET"
+      """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
+
+    val BC_codigos_de_cadenas_campemimediaset: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_campemimediaset)
+
+    // TODO capturar excepciones
+    val codigos_de_cadenas_autonomicas: List[Long] = spark.sql(
+      s"""SELECT DISTINCT cod_cadena FROM mediaset.dim_agrup_cadenas WHERE cod_grupo_n2 = 30006 AND cod_cadena IS NOT NULL
+       """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
+
+    val BC_codigos_de_cadenas_autonomicas: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_autonomicas)
+
+    // TODO capturar excepciones
+    val codigos_de_cadenas_forta: List[Long] = spark.sql(
+        s"""SELECT cod_cadena FROM $output_db.$tbl_dim_agrup_cadenas WHERE cod_forta = 1
+         """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
+
+    val BC_codigos_de_cadenas_forta: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_forta)
+
+    val share_grps_cols_1: DataFrame  = getColumn_cod_tp_lineanegocio_km(spark, share_grps_cols_inicial, BC_dim_linea_negocio_list)
+    val share_grps_cols_1_nom: DataFrame  = getColumn_nom_tp_lineanegocio_km(spark, share_grps_cols_1, BC_dim_linea_negocio_list)
+
+    val share_grps_cols_2: DataFrame  = getColumn_cod_tp_categr_km(spark, share_grps_cols_1_nom, BC_dim_linea_negocio_list )
+    val share_grps_cols_3: DataFrame  = getColumn_nom_tp_categr_km(spark, share_grps_cols_2, BC_dim_linea_negocio_list )
+
+    val share_grps_cols_4: DataFrame  = getColumn_cod_fg_autonomica(spark, share_grps_cols_3, BC_agrupCadenas_list, BC_codigos_de_cadenas_autonomicas )
+    val share_grps_cols_5: DataFrame  = setNomOnColumn(spark,share_grps_cols_4, "cod_fg_autonomica" , "nom_fg_autonomica")
+
+    val share_grps_cols_6: DataFrame  = getColumn_cod_fg_forta(spark, share_grps_cols_5, BC_agrupCadenas_list, BC_codigos_de_cadenas_forta )
+    val share_grps_cols_7: DataFrame  = setNomOnColumn(spark,share_grps_cols_6, "cod_fg_forta" , "nom_fg_forta")
+
+    val share_grps_cols_8: DataFrame  = getColumn_cod_fg_boing(spark, share_grps_cols_7, BC_agrupCadenas_list, BC_codigos_de_cadenas_boing)
+    val share_grps_cols_9: DataFrame  = setNomOnColumn(spark,share_grps_cols_8, "cod_fg_boing" , "nom_fg_boing")
+
+    val share_grps_cols_10: DataFrame  = getColumn_cod_identif_franja(spark, share_grps_cols_9, BC_configuraciones_list)
+    val share_grps_cols_10_nom: DataFrame  = getColumn_nom_identif_franja(spark, share_grps_cols_10, BC_configuraciones_list)
+
+    val share_grps_cols_11: DataFrame  = getColumn_cod_target_compra(spark, share_grps_cols_10_nom, BC_rel_campania_trgt_list)
+
+    val share_grps_cols_12: DataFrame  = getColumn_cod_fg_filtrado(spark, share_grps_cols_11, BC_configuraciones_list)
+    val share_grps_cols_13: DataFrame = setNomOnColumn_fg_filtrado(spark, share_grps_cols_12, "cod_fg_filtrado", "nom_fg_filtrado")
+
+    val share_grps_cols_14: DataFrame  = getColumn_cod_fg_campemimediaset(spark, share_grps_cols_13, BC_agrupCadenas_list, BC_codigos_de_cadenas_campemimediaset)
+    val share_grps_cols_14_nom: DataFrame  = setNomOnColumn(spark,share_grps_cols_14, "cod_fg_campemimediaset" , "nom_fg_campemimediaset")
+
+    val share_grps_cols_15: DataFrame = getColumn_cod_tp_computo_km(spark, share_grps_cols_14_nom, BC_dim_linea_negocio_list, BC_param_tipologias_duracion, BC_param_duracion_iiee)
+    val share_grps_cols_16: DataFrame = getColumn_nom_tp_computo_km(spark, share_grps_cols_15, BC_dim_linea_negocio_list, BC_param_tipologias_duracion, BC_param_duracion_iiee)
+
+    val share_grps_cols_17: DataFrame = getColumn_cod_eventos(spark, share_grps_cols_16, BC_eventos_list)
+    val share_grps_cols_17_nom: DataFrame = getColumn_nom_eventos(spark, share_grps_cols_17, BC_eventos_list)
+
+    val share_grps_cols_18: DataFrame = getColumn_cod_fg_anuncmediaset(spark, share_grps_cols_17_nom, BC_agrupCadenas_list, BC_codigos_de_cadenas_campemimediaset)
+    val share_grps_cols_18_nom: DataFrame  = setNomOnColumn(spark,share_grps_cols_18, "cod_fg_anuncmediaset" , "nom_fg_anuncmediaset")
+
+    persistShareGRPS(share_grps_cols_18_nom,parametrizationCfg) // Persistimos en Hive el ultimo DF y se guarda como tabla en Hive
 
     spark.stop()
   }
@@ -207,7 +219,6 @@ object Share {
     result
   }
 
-
   // UDF's COD_TP_COMPUTO_KM Y NOM_TP_COMPUTO_KM ---------------------------------------------------------------------------------------------------------------------------------------
 
   def getColumn_nom_tp_computo_km(spark: SparkSession, originDF : DataFrame, BC_lineaNegocioList: Broadcast[List[LineaNegocio]], BC_param_tipologias_duracion: Broadcast[Array[Int]], BC_param_duracion_iiee:  Broadcast[Int]): DataFrame = {
@@ -226,7 +237,7 @@ object Share {
 
   def FN_nom_tp_computo_km(lineaNegocioList: List[LineaNegocio], param_tipologias_duracion: Array[Int],param_duracion_iiee: Int, fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long, duracion: Int): String = {
 
-    var result = "Sin Especificar"
+    var result = "SIN ESPECIFICAR"
 
     for(elem <- lineaNegocioList){
       if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
@@ -301,6 +312,7 @@ object Share {
 
   }
 
+  // TODO Revisar cambios
   def FN_cod_fg_filtrado(configuraciones_list: List[Configuraciones], fecha_dia: Long, cod_anunc: Long,  cod_anunciante_subsidiario: Long,
                          cod_anuncio: Long, cod_cadena: Long, cod_programa: Long, cod_tipologia: Long): Long = {
 
@@ -426,21 +438,18 @@ object Share {
 
   def FN_cod_tp_lineanegocio_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): Long = {
 
-    var result = 0L
+  var result = 1003L
 
     for(elem <- lineaNegocioList) {
-      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia &&
-        fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
-
-        result = elem.cod_tp_lineanegocio_km
-      } else {
-        result = 1003
+      if(elem.cod_comunicacion == cod_comunicacion
+        && elem.cod_tipologia == cod_tipologia
+        && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin
+        ) {
+            result = elem.cod_tp_lineanegocio_km
+          }
       }
-    }
-
     result
   }
-
 
 
   def getColumn_nom_tp_lineanegocio_km(spark: SparkSession, originDF : DataFrame, BC_lineaNegocioList: Broadcast[List[LineaNegocio]]): DataFrame = {
@@ -456,17 +465,11 @@ object Share {
 
   def FN_nom_tp_lineanegocio_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): String = {
 
-    var result = ""
+    var result = "SIN ESPECIFICAR"
 
     for(elem <- lineaNegocioList) {
-      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia &&
-        fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
-
+      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
         result = elem.nom_tp_lineanegocio_km
-
-      } else {
-
-        result = "Sin Especificar"
       }
     }
 
@@ -488,17 +491,12 @@ object Share {
 
   def FN_cod_tp_categr_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): Long = {
 
-    var result = 0L
+    var result = 2006L
 
     for(elem <- lineaNegocioList) {
       if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia &&
         fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
-
         result = elem.cod_tp_categr_km
-
-      } else {
-
-        result = 2006
       }
     }
 
@@ -518,17 +516,13 @@ object Share {
 
   def FN_nom_tp_categr_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): String = {
 
-    var result = ""
+    var result = "SIN ESPECIFICAR"
 
     for(elem <- lineaNegocioList) {
       if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia &&
         fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
 
         result = elem.nom_tp_categr_km
-
-      } else {
-
-        result = "Sin Especificar"
       }
     }
 
@@ -537,64 +531,58 @@ object Share {
 
   // UDF's cod_fg_autonomica y nom_fg_autonomica ----------------------------------------------------------------------------
 
-  def getColumn_cod_fg_autonomica(spark: SparkSession, originDF : DataFrame, BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]]): DataFrame = {
+  def getColumn_cod_fg_autonomica(spark: SparkSession, originDF : DataFrame, BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_autonomicas: Broadcast[List[Long]]): DataFrame = {
 
-    originDF.withColumn("cod_fg_autonomica", UDF_cod_fg_autonomica(BC_agrupCadenas_list)(col("fecha_dia").cast(LongType), col("cod_cadena")))
+    originDF.withColumn("cod_fg_autonomica", UDF_cod_fg_autonomica(BC_agrupCadenas_list, BC_codigos_de_cadenas_autonomicas)(col("fecha_dia").cast(LongType), col("cod_cadena")))
 
   }
 
-  def UDF_cod_fg_autonomica(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]]): UserDefinedFunction = {
+  def UDF_cod_fg_autonomica(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_autonomicas: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_autonomica(BC_agrupCadenas_list.value, fecha_dia, cod_cadena ))
+    udf[Int, Long, Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_autonomica(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_autonomicas.value, fecha_dia, cod_cadena ))
   }
 
-  def FN_cod_fg_autonomica(agrupCadenas_list: List[AgrupCadenas], fecha_dia: Long, cod_cadena: Long ): Int = {
+  def FN_cod_fg_autonomica(agrupCadenas_list: List[AgrupCadenas], codigosDeCadenasAutonomicas: List[Long], fecha_dia: Long, cod_cadena: Long ): Int = {
 
     var result = 0
 
     for(elem <- agrupCadenas_list) {
-      if (elem.cod_grupo_n2 == 30006) {
-        if (cod_cadena == elem.cod_cadena && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin) {
+      if (codigosDeCadenasAutonomicas.contains(cod_cadena) && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
 
           result = 1
-        } else {
-
+        }
+        else {
           result = 0
         }
       }
-    }
-
     result
   }
 
   // UDF's cod_fg_forta y nom_fg_forta ----------------------------------------------------------------------------
 
-  def getColumn_cod_fg_forta(spark: SparkSession, originDF : DataFrame, BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]]): DataFrame = {
+  def getColumn_cod_fg_forta(spark: SparkSession, originDF : DataFrame, BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_forta: Broadcast[List[Long]]): DataFrame = {
 
-    originDF.withColumn("cod_fg_forta", UDF_cod_fg_forta(BC_agrupCadenas_list)(col("fecha_dia").cast(LongType), col("cod_cadena")))
+    originDF.withColumn("cod_fg_forta", UDF_cod_fg_forta(BC_agrupCadenas_list, BC_codigos_de_cadenas_forta)(col("fecha_dia").cast(LongType), col("cod_cadena")))
 
   }
 
-  def UDF_cod_fg_forta(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]]): UserDefinedFunction = {
+  def UDF_cod_fg_forta(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_forta: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_forta(BC_agrupCadenas_list.value, fecha_dia, cod_cadena ))
+    udf[Int, Long, Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_forta(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_forta.value, fecha_dia, cod_cadena ))
   }
 
-  def FN_cod_fg_forta(agrupCadenas_list: List[AgrupCadenas], fecha_dia: Long, cod_cadena: Long ): Int = {
+  def FN_cod_fg_forta(agrupCadenas_list: List[AgrupCadenas], codigosDeCadenasForta: List[Long], fecha_dia: Long, cod_cadena: Long ): Int = {
 
     var result = 0
 
     for(elem <- agrupCadenas_list) {
-      if (elem.cod_forta == 1) {
-        if (cod_cadena == elem.cod_cadena && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin) {
-
+      if (codigosDeCadenasForta.contains(cod_cadena) && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
           result = 1
         } else {
 
           result = 0
         }
       }
-    }
 
     result
   }
@@ -629,7 +617,7 @@ object Share {
   }
 
   // UDF's cod_target_compra y nom_target_compra ----------------------------------------------------------------------------
-
+// TODO revisar
   def getColumn_cod_target_compra(spark: SparkSession, originDF : DataFrame, BC_rel_campania_trgt_list: Broadcast[List[relCampaniaTrgt]]): DataFrame = {
 
     originDF.withColumn("cod_target_compra", UDF_cod_target_compra(BC_rel_campania_trgt_list)(col("cod_anuncio"),col("cod_cadena") ))
@@ -643,15 +631,12 @@ object Share {
 
   def FN_cod_target_compra(rel_campania_trgt_list: List[relCampaniaTrgt], cod_anuncio: Long, cod_cadena: Long ): Long = {
 
+    // SELECT b.cod_target FROM fctd_share_grps a, rel_campania_trgt_2 b WHERE (a.cod_cadena = b.cod_cadena AND a.cod_anuncio = b.cod_anuncio)
     var result = 0L
 
     for(elem <- rel_campania_trgt_list) {
       if(elem.cod_anuncio == cod_anuncio && elem.cod_cadena == cod_cadena) {
-
         result = elem.cod_target
-
-      } else {
-        result = 0
       }
     }
 
@@ -781,9 +766,9 @@ object Share {
 
   // Case class con las tablas de SalesForce
 
-  case class LineaNegocio(cod_comunicacion: java.lang.Long, cod_tipologia: java.lang.Long, cod_tp_categr_km: java.lang.Long, cod_tp_computo_km: java.lang.Long,
-                          cod_tp_lineanegocio_km: java.lang.Long, des_comunicacion: String, des_tipologia: String,
-                          fecha_fin: Long,fecha_ini: Long, nom_tp_categr_km: String, nom_tp_computo_km: String, nom_tp_lineanegocio_km: String )
+  case class LineaNegocio(cod_tp_categr_km: java.lang.Long, cod_tipologia: java.lang.Long, cod_tp_lineanegocio_km: java.lang.Long, fecha_fin: Long,
+                          nom_tp_lineanegocio_km: String, des_comunicacion: String, des_tipologia: String,
+                          nom_tp_categr_km: String, fecha_ini: Long, cod_comunicacion: java.lang.Long, nom_tp_computo_km: String, cod_tp_computo_km: java.lang.Long )
 
   case class AgrupCadenas(des_grupo_n1 : String, des_grupo_n2: String, des_grupo_n0: String, fecha_fin: Long, cod_forta: java.lang.Long, des_forta: String,
                           cod_cadena: java.lang.Long, cod_grupo_n0: java.lang.Long, fecha_ini: Long,
@@ -826,9 +811,9 @@ object Share {
     val input_db: String = parametrizationCfg.getProperty("mediaset.share.input.db")
     val tbl_name_fcts_mercado_lineal: String = parametrizationCfg.getProperty("mediaset.share.input.tbl_name_fcts_mercado_lineal")
 
-    spark.sql(s"""
+     spark.sql(s"""
       SELECT
-      substr(dia_progrmd, 0, 10) AS fecha_dia,
+      dia_progrmd AS fecha_dia,
       dia_progrmd,
       cod_mes_com,
       nom_mes_com,
@@ -933,7 +918,7 @@ object Share {
     * @return
     */
   def get_mercado_lineal_dia_agregado(spark: SparkSession): DataFrame = {
-    spark.sql("""
+     spark.sql("""
                             SELECT
                                fecha_dia,
                                dia_progrmd,
