@@ -101,7 +101,7 @@ object Share {
 
     // TODO capturar excepciones
     val codigos_de_cadenas_autonomicas: List[Long] = spark.sql(
-      s"""SELECT DISTINCT cod_cadena FROM mediaset.dim_agrup_cadenas WHERE cod_grupo_n2 = 30006 AND cod_cadena IS NOT NULL
+      s"""SELECT DISTINCT cod_cadena FROM $output_db.$tbl_dim_agrup_cadenas WHERE cod_grupo_n2 = 30006 AND cod_cadena IS NOT NULL
        """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
 
     val BC_codigos_de_cadenas_autonomicas: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_autonomicas)
