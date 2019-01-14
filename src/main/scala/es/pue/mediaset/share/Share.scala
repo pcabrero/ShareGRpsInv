@@ -101,7 +101,7 @@ object Share {
 
     // TODO capturar excepciones
     val codigos_de_cadenas_autonomicas: List[Long] = spark.sql(
-      s"""SELECT DISTINCT cod_cadena FROM $output_db.$tbl_dim_agrup_cadenas WHERE cod_grupo_n2 = 30006 AND cod_cadena IS NOT NULL
+      s"""SELECT DISTINCT cod_cadena FROM  $output_db.$tbl_dim_agrup_cadenas WHERE cod_grupo_n2 = 30006 AND cod_cadena IS NOT NULL
        """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
 
     val BC_codigos_de_cadenas_autonomicas: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_autonomicas)
@@ -148,7 +148,9 @@ object Share {
     val share_grps_cols_18: DataFrame = getColumn_cod_fg_anuncmediaset(spark, share_grps_cols_17_nom, BC_agrupCadenas_list, BC_codigos_de_cadenas_campemimediaset)
     val share_grps_cols_18_nom: DataFrame  = setNomOnColumn(spark,share_grps_cols_18, "cod_fg_anuncmediaset" , "nom_fg_anuncmediaset")
 
-    persistShareGRPS(share_grps_cols_18_nom,parametrizationCfg) // Persistimos en Hive el ultimo DF y se guarda como tabla en Hive
+    val share_grps_current_timestamp: DataFrame = setCurrentTimeStamp(spark, share_grps_cols_18_nom, timezone)
+
+    persistShareGRPS(share_grps_current_timestamp,parametrizationCfg) // Persistimos en Hive el ultimo DF y se guarda como tabla en Hive
 
     spark.stop()
   }
@@ -199,6 +201,10 @@ object Share {
   }
 
   /************************************************************************************************************/
+
+  def setCurrentTimeStamp(spark: SparkSession, originDF: DataFrame, timezone: String): DataFrame = {
+    originDF.withColumn("fecha_ult_actualiz", from_utc_timestamp(current_timestamp(), timezone))
+  }
 
   def setNomOnColumn(spark: SparkSession, originDF : DataFrame, lookupColName : String, newColumn : String): DataFrame ={
     originDF.withColumn(newColumn, UDF_set_nom_on_column()(col(lookupColName)) )
@@ -307,36 +313,48 @@ object Share {
   def UDF_cod_fg_filtrado(BC_configuraciones_list: Broadcast[List[Configuraciones]]): UserDefinedFunction = {
 
     udf[Long, Long, Long, Long, Long, Long, Long, Long]( (fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia) =>
-      //      FN_cod_fg_filtrado(BC_configuraciones_list.value, fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia))
       FN_cod_fg_filtrado(BC_configuraciones_list.value, fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia))
 
   }
 
-  // TODO Revisar cambios
   def FN_cod_fg_filtrado(configuraciones_list: List[Configuraciones], fecha_dia: Long, cod_anunc: Long,  cod_anunciante_subsidiario: Long,
-                         cod_anuncio: Long, cod_cadena: Long, cod_programa: Long, cod_tipologia: Long): Long = {
+                         cod_anuncio: Long, cod_cadena: Long, cod_programa: Any, cod_tipologia: Long): Long = {
 
     var result = 0L
 
     for(elem <- configuraciones_list){
-      if(elem.des_accion.equalsIgnoreCase("Filtrar")) {
-
-        if (
-          ((elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
-            && (elem.cod_campana == cod_anuncio && elem.cod_cadena == cod_cadena)
+      if(
+        (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa == null
+          && (elem.cod_campana == null
+           && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
+           && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin))
+          || (elem.cod_campana != null
+           && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
+           && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin)))
+        ||
+          (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa != null
+            && (elem.cod_campana == null
+          && (elem.cod_anunciante_pe == null || elem.cod_anunciante_kantar == null)
+          && elem.cod_cadena == cod_cadena
+          && elem.cod_programa == cod_programa
+          && elem.cod_tipologia == cod_tipologia
+          && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin))
+        ||
+          (elem.cod_campana == null
+            && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
+            && elem.cod_cadena == cod_cadena
+            && elem.cod_programa == cod_programa
+            && elem.cod_tipologia == cod_tipologia
             && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin))
-            ||
-            (elem.cod_cadena == cod_cadena && elem.cod_programa == cod_programa
-              && elem.cod_tipologia == cod_tipologia
-              && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin))
-        )
-        {
-
-          result = 1
-
-          //        } else {
-          //          result = 0
-        }
+        ||
+          (elem.cod_campana == cod_anuncio
+            && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
+            && elem.cod_cadena == cod_cadena
+            && elem.cod_programa == cod_programa
+            && elem.cod_tipologia == cod_tipologia
+            && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin)))
+        ) {
+        result = 1L
       }
     }
 

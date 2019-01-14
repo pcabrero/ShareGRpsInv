@@ -1600,7 +1600,7 @@ class ShareTest {
     val Conf_cod_anunciante_kantar = 0L
     val Conf_cod_anunciante_pe = 0L
     val Conf_cod_cadena = 0L
-    val Conf_cod_campana = 0L
+    val Conf_cod_campana = null
     val Conf_cod_programa = 0L
     val Conf_cod_tipologia = 0L
     val Conf_des_accion = "Filtrar"
@@ -1620,7 +1620,7 @@ class ShareTest {
     val cod_anunciante_subsidiario = 0L
     val cod_anuncio = 0L
     val cod_cadena = 0L
-    val cod_programa = 0L
+    val cod_programa = null
     val cod_tipologia = 0L
 
     assertEquals(1L, Share.FN_cod_fg_filtrado(
@@ -1631,13 +1631,13 @@ class ShareTest {
   }
 
   @Test
-  // Configuraciones list is NOT empty. des_accion != "FILTRAR"
+  // Configuraciones list is NOT empty. des_accion != "FILTRAR" no hace match con ninguna condicion
   def FN_cod_fg_filtrado_t3(): Unit = {
 
     // Configuraciones
     val Conf_cod_accion = 123L
-    val Conf_cod_anunciante_kantar = 0L
-    val Conf_cod_anunciante_pe = 0L
+    val Conf_cod_anunciante_kantar = 230L
+    val Conf_cod_anunciante_pe = 100L
     val Conf_cod_cadena = 0L
     val Conf_cod_campana = 0L
     val Conf_cod_programa = 0L
@@ -1656,6 +1656,45 @@ class ShareTest {
     // fctd_share_grps
     val fecha_dia = 1L
     val cod_anunc = 0L
+    val cod_anunciante_subsidiario = 20L
+    val cod_anuncio = 0L
+    val cod_cadena = 0L
+    val cod_programa = 0L
+    val cod_tipologia = 0L
+
+    assertEquals(0L, Share.FN_cod_fg_filtrado(
+      List(Configuraciones(Conf_cod_accion, Conf_cod_anunciante_kantar, Conf_cod_anunciante_pe, Conf_cod_cadena, Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
+        Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato))
+      , fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia))
+
+  }
+
+  @Test
+  // Configuraciones list is NOT empty. fecha_dia no coincide en el rango de fechas
+  def FN_cod_fg_filtrado_t4(): Unit = {
+
+    // Configuraciones
+    val Conf_cod_accion = 123L
+    val Conf_cod_anunciante_kantar = 0L
+    val Conf_cod_anunciante_pe = 0L
+    val Conf_cod_cadena = 0L
+    val Conf_cod_campana = null
+    val Conf_cod_programa = 0L
+    val Conf_cod_tipologia = 0L
+    val Conf_des_accion = "NO ES Filtrar"
+    val Conf_des_anunciante_kantar = "mmm"
+    val Conf_des_anunciante_pe = "GOL"
+    val Conf_des_cadena = "2K GAMES"
+    val Conf_des_campana = "FUTBOL:INTERNATIONAL CHAMPIONS CUP(D)"
+    val Conf_des_programa = "CONVENCIONAL"
+    val Conf_des_tipologia = ""
+    val Conf_fecha_fin = 2L
+    val Conf_fecha_ini = 0L
+    val Conf_iiee2_formato = ""
+
+    // fctd_share_grps
+    val fecha_dia = 5L
+    val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
     val cod_anuncio = 0L
     val cod_cadena = 0L
@@ -1669,7 +1708,7 @@ class ShareTest {
 
   }
 
-  //*****************************************************************************************
+//  //*****************************************************************************************
 
   @Test
   // AgrupCadenas list is empty.
@@ -1929,8 +1968,5 @@ class ShareTest {
       fecha_dia, cod_cadena, cod_programa))
 
   }
-
-  //*****************************************************************************************
-
 
 }
