@@ -6,6 +6,11 @@ output_path="/tmp/workspace_julio/mediaset"
 root_pom_path="."
 ssh_user="julio"
 
+spark_params_dev="--master yarn --deploy-mode cluster --class es.pue.mediaset.share.Share --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename \"mediaset-share.properties\""
+spark_params_mediaset="--class es.pue.mediaset.share.Share --master yarn --deploy-mode cluster --driver-memory 4G --driver-cores 1 --num-executors 6 --executor-memory 8G --executor-cores 2 --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename \"mediaset-share.properties\""
+
+spark_submit_params=$spark_params_mediaset
+
 msg_init="-> STARTED mvn package"
 msg_end="-> FINISHED mvn package"
 
@@ -35,4 +40,5 @@ echo $msg_end
 #ssh francisco@pueworker1.pue.es -- spark2-submit --master yarn --deploy-mode cluster --driver-memory 512m --executor-cores 1 --num-executors 1 --executor-memory 500m --class es.pue.mediaset.share.PrepararDatos --files hdfs:///user/francisco/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties"
 # ssh francisco@pueworker1.pue.es -- spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.PrepararDatos --files hdfs:///user/francisco/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties"
 # Param local filesystem
-ssh $ssh_user@pueworker1.pue.es -- spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.Share --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties"
+#ssh $ssh_user@pueworker1.pue.es -- spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.Share --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties"
+ssh $ssh_user@pueworker1.pue.es -- spark2-submit $spark_submit_params

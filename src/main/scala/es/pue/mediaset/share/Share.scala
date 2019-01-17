@@ -6,11 +6,16 @@ import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types._
+import java.util.Calendar
+import scala.collection.immutable.Map
+import org.apache.log4j.LogManager
 
 object Share {
 
   // Instanciación de clase de utilidades
-  val utils = new Utils
+  private val utils = new Utils
+
+  private val LOG = LogManager.getLogger(getClass.getName)
 
   def main(args : Array[String]) {
 
@@ -67,14 +72,16 @@ object Share {
     val dim_linea_negocio_list = spark.sql("SELECT * FROM dim_linea_negocio").as[LineaNegocio].collect().toList
     val configuraciones_list = spark.sql("SELECT * FROM tb_configuraciones").as[Configuraciones].collect().toList
     val agrupCadenas_list = spark.sql(s"""SELECT * FROM $output_db.$tbl_dim_agrup_cadenas""").as[AgrupCadenas].collect().toList
-    val rel_campania_trgt_list = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().toList
+//    val rel_campania_trgt_list = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().map( o => (o.cod_anuncio, o.cod_cadena ) -> o.cod_target ).toMap
+    val rel_campania_trgt_map = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().map( o => (o.cod_anuncio, o.cod_cadena ) -> o.cod_target ).toMap
     val eventos_list = spark.sql("SELECT * FROM tb_eventos").as[Eventos].collect().toList
 
     // Creating broadcast objects to work on the nodes
     val BC_param_duracion_iiee = spark.sparkContext.broadcast(duracion_iiee)
     val BC_param_tipologias_duracion = spark.sparkContext.broadcast(tipologias_duracion)
     val BC_dim_linea_negocio_list = spark.sparkContext.broadcast(dim_linea_negocio_list)
-    val BC_rel_campania_trgt_list = spark.sparkContext.broadcast(rel_campania_trgt_list)
+//    val BC_rel_campania_trgt_list = spark.sparkContext.broadcast(rel_campania_trgt_list)
+    val BC_rel_campania_trgt_map = spark.sparkContext.broadcast(rel_campania_trgt_map)
     val BC_eventos_list = spark.sparkContext.broadcast(eventos_list)
     val BC_configuraciones_list = spark.sparkContext.broadcast(configuraciones_list)
     val BC_agrupCadenas_list = spark.sparkContext.broadcast(agrupCadenas_list)
@@ -85,7 +92,7 @@ object Share {
 
     val mercado_lineal_dia_agregado: DataFrame = get_mercado_lineal_dia_agregado(spark).withColumn("fecha_dia", unix_timestamp(col("fecha_dia"), "yyyy-MM-dd").cast(TimestampType))
 
-    val share_grps_cols_inicial: DataFrame =  mercado_lineal_dia_agregado
+    val share_grps_cols_inicial: DataFrame =  mercado_lineal_dia_agregado.persist
     registerShareGRPS(share_grps_cols_inicial)
 
     // TODO capturar excepciones
@@ -131,7 +138,7 @@ object Share {
     val share_grps_cols_10: DataFrame  = getColumn_cod_identif_franja(spark, share_grps_cols_9, BC_configuraciones_list)
     val share_grps_cols_10_nom: DataFrame  = getColumn_nom_identif_franja(spark, share_grps_cols_10, BC_configuraciones_list)
 
-    val share_grps_cols_11: DataFrame  = getColumn_cod_target_compra(spark, share_grps_cols_10_nom, BC_rel_campania_trgt_list)
+    val share_grps_cols_11: DataFrame  = getColumn_cod_target_compra(spark, share_grps_cols_10_nom, BC_rel_campania_trgt_map)
 
     val share_grps_cols_12: DataFrame  = getColumn_cod_fg_filtrado(spark, share_grps_cols_11, BC_configuraciones_list)
     val share_grps_cols_13: DataFrame = setNomOnColumn_fg_filtrado(spark, share_grps_cols_12, "cod_fg_filtrado", "nom_fg_filtrado")
@@ -636,29 +643,31 @@ object Share {
 
   // UDF's cod_target_compra y nom_target_compra ----------------------------------------------------------------------------
 // TODO revisar
-  def getColumn_cod_target_compra(spark: SparkSession, originDF : DataFrame, BC_rel_campania_trgt_list: Broadcast[List[relCampaniaTrgt]]): DataFrame = {
+  def getColumn_cod_target_compra(spark: SparkSession, originDF : DataFrame, BC_rel_campania_trgt_list: Broadcast[scala.collection.immutable.Map[(Long,Long),Long]]): DataFrame = {
 
     originDF.withColumn("cod_target_compra", UDF_cod_target_compra(BC_rel_campania_trgt_list)(col("cod_anuncio"),col("cod_cadena") ))
 
   }
 
-  def UDF_cod_target_compra(BC_rel_campania_trgt_list: Broadcast[List[relCampaniaTrgt]]): UserDefinedFunction = {
+  def UDF_cod_target_compra(BC_rel_campania_trgt_list: Broadcast[scala.collection.immutable.Map[(Long,Long),Long]]): UserDefinedFunction = {
 
     udf[Long, Long, Long]( (cod_anuncio, cod_cadena ) => FN_cod_target_compra(BC_rel_campania_trgt_list.value, cod_anuncio, cod_cadena ))
   }
 
-  def FN_cod_target_compra(rel_campania_trgt_list: List[relCampaniaTrgt], cod_anuncio: Long, cod_cadena: Long ): Long = {
+  def FN_cod_target_compra(rel_campania_trgt_map: scala.collection.immutable.Map[(Long,Long),Long], cod_anuncio: Long, cod_cadena: Long ): Long = {
 
     // SELECT b.cod_target FROM fctd_share_grps a, rel_campania_trgt_2 b WHERE (a.cod_cadena = b.cod_cadena AND a.cod_anuncio = b.cod_anuncio)
-    var result = 0L
+//    var result = 0L
 
-    for(elem <- rel_campania_trgt_list) {
-      if(elem.cod_anuncio == cod_anuncio && elem.cod_cadena == cod_cadena) {
-        result = elem.cod_target
-      }
-    }
+//    for(elem <- rel_campania_trgt_list) {
+//      if(elem.cod_anuncio == cod_anuncio && elem.cod_cadena == cod_cadena) {
+//        result = elem.cod_target
+//      }
+//    }
 
-    result
+    rel_campania_trgt_map.getOrElse((cod_anuncio,cod_cadena),0L)
+
+//    result
   }
 
   // UDF's cod_fg_campemimediaset y nom_fg_campemimediaset ----------------------------------------------------------------------------
@@ -792,7 +801,7 @@ object Share {
                           cod_cadena: java.lang.Long, cod_grupo_n0: java.lang.Long, fecha_ini: Long,
                           cod_grupo_n2: java.lang.Long, cod_grupo_n1: java.lang.Long, des_cadena: String)
 
-  case class relCampaniaTrgt(cod_anuncio: java.lang.Long, nom_anuncio: String, cod_cadena: java.lang.Long, nom_cadena: String, cod_target: java.lang.Long, cod_target_gen_may: java.lang.Long,
+  case class relCampaniaTrgt(cod_anuncio: Long, nom_anuncio: String, cod_cadena: Long, nom_cadena: String, cod_target: Long, cod_target_gen_may: java.lang.Long,
                              nom_target_gen_may: String, fecha_hora: java.lang.Long, origen_datos: String)
 
   case class Configuraciones(cod_accion : java.lang.Long, cod_anunciante_kantar: java.lang.Long, cod_anunciante_pe: java.lang.Long, cod_cadena: java.lang.Long,
