@@ -7,7 +7,7 @@ root_pom_path="."
 ssh_user="julio"
 
 spark_params_dev="--master yarn --deploy-mode cluster --class es.pue.mediaset.share.Share --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename \"mediaset-share.properties\""
-spark_params_mediaset="--class es.pue.mediaset.share.Share --master yarn --deploy-mode cluster --driver-memory 4G --driver-cores 1 --num-executors 6 --executor-memory 8G --executor-cores 2 --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename \"mediaset-share.properties\""
+spark_params_mediaset="--class es.pue.mediaset.share.Share --master yarn --deploy-mode cluster --driver-memory 4G --driver-cores 1 --num-executors 6 --num-executors 6 --executor-memory 8G --executor-cores 2 --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename \"mediaset-share.properties\""
 
 spark_submit_params=$spark_params_mediaset
 
