@@ -1464,92 +1464,92 @@ class ShareTest {
   }
 
   //*****************************************************************************************
-
-  @Test
-  // relCampaniaTrgt list is empty
-  def FN_cod_target_compra_t1(): Unit = {
-
-    // relCampaniaTrgt
-    val Rel_cod_anuncio = 0L
-    val Rel_nom_anuncio  = ""
-    val Rel_cod_cadena  = 0L
-    val Rel_nom_cadena  = ""
-    val Rel_cod_target = 0L
-    val Rel_cod_target_gen_may = 0L
-    val Rel_nom_target_gen_may = ""
-    val Rel_fecha_hora = 0L
-    val Rel_origen_datos = ""
-
-    // Codigo de cadenas boing
+//
+//  @Test
+//  // relCampaniaTrgt list is empty
+//  def FN_cod_target_compra_t1(): Unit = {
+//
+//    // relCampaniaTrgt
+//    val Rel_cod_anuncio = 0L
+//    val Rel_nom_anuncio  = ""
+//    val Rel_cod_cadena  = 0L
+//    val Rel_nom_cadena  = ""
+//    val Rel_cod_target = 0L
+//    val Rel_cod_target_gen_may = 0L
+//    val Rel_nom_target_gen_may = ""
+//    val Rel_fecha_hora = 0L
+//    val Rel_origen_datos = ""
+//
+//    // Codigo de cadenas boing
+////    val codigos_de_cadenas_boing_list = List(555L, 666L, 777L)
+//    val codigos_de_cadenas_boing_list = List()
+//
+//    // fctd_share_grps
+////    val fecha_dia = 1L
+//    val cod_cadena = 999L
+//    val cod_anuncio = 555L
+//
+//    assertEquals(0, Share.FN_cod_target_compra(
+//      List(relCampaniaTrgt(Rel_cod_anuncio, Rel_nom_anuncio, Rel_cod_cadena, Rel_nom_cadena, Rel_cod_target, Rel_cod_target_gen_may, Rel_nom_target_gen_may, Rel_fecha_hora, Rel_origen_datos))
+//      , cod_cadena, cod_anuncio ))
+//
+//  }
+//
+//  @Test
+//  // relCampaniaTrgt list is NOT empty. MATCH => elem.cod_anuncio == cod_anuncio && elem.cod_cadena == cod_cadena
+//  def FN_cod_target_compra_t2(): Unit = {
+//
+//    // relCampaniaTrgt
+//    val Rel_cod_anuncio = 555L
+//    val Rel_nom_anuncio  = ""
+//    val Rel_cod_cadena  = 999L
+//    val Rel_nom_cadena  = ""
+//    val Rel_cod_target = 888L
+//    val Rel_cod_target_gen_may = 0L
+//    val Rel_nom_target_gen_may = ""
+//    val Rel_fecha_hora = 0L
+//    val Rel_origen_datos = ""
+//
+//    // Codigo de cadenas boing
 //    val codigos_de_cadenas_boing_list = List(555L, 666L, 777L)
-    val codigos_de_cadenas_boing_list = List()
-
-    // fctd_share_grps
-//    val fecha_dia = 1L
-    val cod_cadena = 999L
-    val cod_anuncio = 555L
-
-    assertEquals(0, Share.FN_cod_target_compra(
-      List(relCampaniaTrgt(Rel_cod_anuncio, Rel_nom_anuncio, Rel_cod_cadena, Rel_nom_cadena, Rel_cod_target, Rel_cod_target_gen_may, Rel_nom_target_gen_may, Rel_fecha_hora, Rel_origen_datos))
-      , cod_cadena, cod_anuncio ))
-
-  }
-
-  @Test
-  // relCampaniaTrgt list is NOT empty. MATCH => elem.cod_anuncio == cod_anuncio && elem.cod_cadena == cod_cadena
-  def FN_cod_target_compra_t2(): Unit = {
-
-    // relCampaniaTrgt
-    val Rel_cod_anuncio = 555L
-    val Rel_nom_anuncio  = ""
-    val Rel_cod_cadena  = 999L
-    val Rel_nom_cadena  = ""
-    val Rel_cod_target = 888L
-    val Rel_cod_target_gen_may = 0L
-    val Rel_nom_target_gen_may = ""
-    val Rel_fecha_hora = 0L
-    val Rel_origen_datos = ""
-
-    // Codigo de cadenas boing
-    val codigos_de_cadenas_boing_list = List(555L, 666L, 777L)
-
-    // fctd_share_grps
-    val cod_cadena = 999L
-    val cod_anuncio = 555L
-
-    assertEquals(888L, Share.FN_cod_target_compra(
-      List(relCampaniaTrgt(Rel_cod_anuncio, Rel_nom_anuncio, Rel_cod_cadena, Rel_nom_cadena, Rel_cod_target, Rel_cod_target_gen_may, Rel_nom_target_gen_may, Rel_fecha_hora, Rel_origen_datos))
-      , cod_anuncio, cod_cadena ))
-
-  }
-
-  @Test
-  // relCampaniaTrgt list is NOT empty. DOESNT MATCH => elem.cod_anuncio == cod_anuncio && elem.cod_cadena == cod_cadena
-  def FN_cod_target_compra_t3(): Unit = {
-
-    // relCampaniaTrgt
-    val Rel_cod_anuncio = 555L
-    val Rel_nom_anuncio  = ""
-    val Rel_cod_cadena  = 999L
-    val Rel_nom_cadena  = ""
-    val Rel_cod_target = 888L
-    val Rel_cod_target_gen_may = 0L
-    val Rel_nom_target_gen_may = ""
-    val Rel_fecha_hora = 0L
-    val Rel_origen_datos = ""
-
-    // Codigo de cadenas boing
-    val codigos_de_cadenas_boing_list = List(555L, 666L, 777L)
-
-    // fctd_share_grps
-    val cod_cadena = 999L
-    val cod_anuncio = 555666L
-
-    assertEquals(0L, Share.FN_cod_target_compra(
-      List(relCampaniaTrgt(Rel_cod_anuncio, Rel_nom_anuncio, Rel_cod_cadena, Rel_nom_cadena, Rel_cod_target, Rel_cod_target_gen_may, Rel_nom_target_gen_may, Rel_fecha_hora, Rel_origen_datos))
-      , cod_cadena, cod_anuncio ))
-
-  }
+//
+//    // fctd_share_grps
+//    val cod_cadena = 999L
+//    val cod_anuncio = 555L
+//
+//    assertEquals(888L, Share.FN_cod_target_compra(
+//      List(relCampaniaTrgt(Rel_cod_anuncio, Rel_nom_anuncio, Rel_cod_cadena, Rel_nom_cadena, Rel_cod_target, Rel_cod_target_gen_may, Rel_nom_target_gen_may, Rel_fecha_hora, Rel_origen_datos))
+//      , cod_anuncio, cod_cadena ))
+//
+//  }
+//
+//  @Test
+//  // relCampaniaTrgt list is NOT empty. DOESNT MATCH => elem.cod_anuncio == cod_anuncio && elem.cod_cadena == cod_cadena
+//  def FN_cod_target_compra_t3(): Unit = {
+//
+//    // relCampaniaTrgt
+//    val Rel_cod_anuncio = 555L
+//    val Rel_nom_anuncio  = ""
+//    val Rel_cod_cadena  = 999L
+//    val Rel_nom_cadena  = ""
+//    val Rel_cod_target = 888L
+//    val Rel_cod_target_gen_may = 0L
+//    val Rel_nom_target_gen_may = ""
+//    val Rel_fecha_hora = 0L
+//    val Rel_origen_datos = ""
+//
+//    // Codigo de cadenas boing
+//    val codigos_de_cadenas_boing_list = List(555L, 666L, 777L)
+//
+//    // fctd_share_grps
+//    val cod_cadena = 999L
+//    val cod_anuncio = 555666L
+//
+//    assertEquals(0L, Share.FN_cod_target_compra(
+//      List(relCampaniaTrgt(Rel_cod_anuncio, Rel_nom_anuncio, Rel_cod_cadena, Rel_nom_cadena, Rel_cod_target, Rel_cod_target_gen_may, Rel_nom_target_gen_may, Rel_fecha_hora, Rel_origen_datos))
+//      , cod_cadena, cod_anuncio ))
+//
+//  }
 
   //*****************************************************************************************
 
