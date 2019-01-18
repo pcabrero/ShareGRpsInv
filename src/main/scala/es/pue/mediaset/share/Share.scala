@@ -332,13 +332,19 @@ object Share {
     for(elem <- configuraciones_list){
       if(
         (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa == null
-          && (elem.cod_campana == null
-           && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
-           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin))
-          || (elem.cod_campana != null
-           && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
-           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)))
-          && elem.cod_cadena == cod_cadena
+          &&
+            (elem.cod_campana == null
+             && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
+             && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)
+             && elem.cod_cadena == cod_cadena
+            )
+            || (elem.cod_campana != null
+             && (elem.cod_campana == cod_anuncio )
+             && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
+             && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)
+             && elem.cod_cadena == cod_cadena
+            )
+          )
         ||
           (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa != null
             && (elem.cod_campana == null
