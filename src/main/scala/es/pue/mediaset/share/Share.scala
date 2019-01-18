@@ -74,7 +74,7 @@ object Share {
     val agrupCadenas_list = spark.sql(s"""SELECT * FROM $output_db.$tbl_dim_agrup_cadenas""").as[AgrupCadenas].collect().toList
 //    val rel_campania_trgt_list = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().map( o => (o.cod_anuncio, o.cod_cadena ) -> o.cod_target ).toMap
     val rel_campania_trgt_map = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().map( o => (o.cod_anuncio, o.cod_cadena ) -> o.cod_target ).toMap
-    val eventos_list = spark.sql("SELECT * FROM tb_eventos").as[Eventos].collect().toList
+    val eventos_list = spark.sql("SELECT * FROM tb_eventos").as[Eventos].collect().toSet
 
     // Creating broadcast objects to work on the nodes
     val BC_param_duracion_iiee = spark.sparkContext.broadcast(duracion_iiee)
@@ -253,7 +253,7 @@ object Share {
     var result = "SIN ESPECIFICAR"
 
     for(elem <- lineaNegocioList){
-      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
+      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ) {
 
         if(param_tipologias_duracion.contains(cod_tipologia)) {
 
@@ -288,7 +288,7 @@ object Share {
     var result = 3005L
 
     for(elem <- lineaNegocioList){
-      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ){
+      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ){
 
         if(param_tipologias_duracion.contains(cod_tipologia)){
 
@@ -334,10 +334,10 @@ object Share {
         (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa == null
           && (elem.cod_campana == null
            && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
-           && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin))
+           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin))
           || (elem.cod_campana != null
            && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
-           && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin)))
+           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)))
           && elem.cod_cadena == cod_cadena
         ||
           (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa != null
@@ -346,21 +346,21 @@ object Share {
           && elem.cod_cadena == cod_cadena
           && elem.cod_programa == cod_programa
           && elem.cod_tipologia == cod_tipologia
-          && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin))
+          && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin))
         ||
           (elem.cod_campana == null
             && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
             && elem.cod_cadena == cod_cadena
             && elem.cod_programa == cod_programa
             && elem.cod_tipologia == cod_tipologia
-            && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin))
+            && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin))
         ||
           (elem.cod_campana == cod_anuncio
             && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
             && elem.cod_cadena == cod_cadena
             && elem.cod_programa == cod_programa
             && elem.cod_tipologia == cod_tipologia
-            && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin)))
+            && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)))
         ) {
         result = 1L
       }
@@ -398,7 +398,7 @@ object Share {
 
         if ( ((elem.cod_campana == cod_anuncio && elem.cod_anunciante_pe == cod_anunc)
           || (elem.cod_anunciante_kantar == cod_anunciante_subsidiario))
-          && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin)) {
+          && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)) {
 
           result = elem.cod_accion
 
@@ -435,7 +435,7 @@ object Share {
 
         if ( ((elem.cod_campana == cod_anuncio && elem.cod_anunciante_pe == cod_anunc)
           || (elem.cod_anunciante_kantar == cod_anunciante_subsidiario))
-          && (fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin)) {
+          && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)) {
 
           result = elem.des_accion
 
@@ -469,7 +469,7 @@ object Share {
     for(elem <- lineaNegocioList) {
       if(elem.cod_comunicacion == cod_comunicacion
         && elem.cod_tipologia == cod_tipologia
-        && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin
+        && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin
         ) {
             result = elem.cod_tp_lineanegocio_km
           }
@@ -494,7 +494,7 @@ object Share {
     var result = "SIN ESPECIFICAR"
 
     for(elem <- lineaNegocioList) {
-      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
+      if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ) {
         result = elem.nom_tp_lineanegocio_km
       }
     }
@@ -521,7 +521,7 @@ object Share {
 
     for(elem <- lineaNegocioList) {
       if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia &&
-        fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
+        fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ) {
         result = elem.cod_tp_categr_km
       }
     }
@@ -546,7 +546,7 @@ object Share {
 
     for(elem <- lineaNegocioList) {
       if(elem.cod_comunicacion == cod_comunicacion && elem.cod_tipologia == cod_tipologia &&
-        fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
+        fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ) {
 
         result = elem.nom_tp_categr_km
       }
@@ -573,7 +573,7 @@ object Share {
     var result = 0
 
     for(elem <- agrupCadenas_list) {
-      if (codigosDeCadenasAutonomicas.contains(cod_cadena) && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
+      if (codigosDeCadenasAutonomicas.contains(cod_cadena) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ) {
 
           result = 1
         }
@@ -602,7 +602,7 @@ object Share {
     var result = 0
 
     for(elem <- agrupCadenas_list) {
-      if (codigosDeCadenasForta.contains(cod_cadena) && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin ) {
+      if (codigosDeCadenasForta.contains(cod_cadena) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ) {
           result = 1
         } else {
 
@@ -632,7 +632,7 @@ object Share {
     var result = 0
 
     for(elem <- agrupCadenas_list) {
-      if (codigos_de_cadenas_boing_list.contains(cod_anuncio) && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin) {
+      if (codigos_de_cadenas_boing_list.contains(cod_anuncio) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
 
         result = 1
       } else {
@@ -689,7 +689,7 @@ object Share {
     var result = -1
 
     for(elem <- agrupCadenas_list) {
-      if(codigos_de_cadenas_campemimediaset.contains(cod_cadena) && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin) {
+      if(codigos_de_cadenas_campemimediaset.contains(cod_cadena) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
 
         result = 1
 
@@ -720,7 +720,7 @@ object Share {
 
     for(elem <- eventos_list) {
       if(cod_cadena == elem.cod_cadena && cod_programa == elem.cod_programa
-        && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin) {
+        && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
 
         result = elem.cod_evento
 
@@ -749,7 +749,7 @@ object Share {
 
     for(elem <- eventos_list) {
       if(cod_cadena == elem.cod_cadena && cod_programa == elem.cod_programa
-        && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin) {
+        && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
 
         result = elem.des_evento
 
@@ -779,7 +779,7 @@ object Share {
     var result = -1
 
     for(elem <- agrupCadenas_list) {
-      if(codigos_de_cadenas_campemimediaset.contains(cod_cadena) && fecha_dia > elem.fecha_ini && fecha_dia < elem.fecha_fin) {
+      if(codigos_de_cadenas_campemimediaset.contains(cod_cadena) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
 
         result = 1
 
