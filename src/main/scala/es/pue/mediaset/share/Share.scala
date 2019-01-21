@@ -15,8 +15,6 @@ object Share {
   // Instanciación de clase de utilidades
   private val utils = new Utils
 
-  private val LOG = LogManager.getLogger(getClass.getName)
-
   def main(args : Array[String]) {
 
     val cfg = new ConfigArgs(args)
@@ -74,7 +72,7 @@ object Share {
     val agrupCadenas_list = spark.sql(s"""SELECT * FROM $output_db.$tbl_dim_agrup_cadenas""").as[AgrupCadenas].collect().toList
 //    val rel_campania_trgt_list = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().map( o => (o.cod_anuncio, o.cod_cadena ) -> o.cod_target ).toMap
     val rel_campania_trgt_map = spark.sql(s"""SELECT * FROM $input_db.$tbl_rel_campania_trgt""").as[relCampaniaTrgt].collect().map( o => (o.cod_anuncio, o.cod_cadena ) -> o.cod_target ).toMap
-    val eventos_list = spark.sql("SELECT * FROM tb_eventos").as[Eventos].collect().toSet
+    val eventos_list = spark.sql("SELECT * FROM tb_eventos").as[Eventos].collect().toList
 
     // Creating broadcast objects to work on the nodes
     val BC_param_duracion_iiee = spark.sparkContext.broadcast(duracion_iiee)
