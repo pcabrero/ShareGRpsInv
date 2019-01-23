@@ -317,13 +317,13 @@ object Share {
 
   def UDF_cod_fg_filtrado(BC_configuraciones_list: Broadcast[List[Configuraciones]]): UserDefinedFunction = {
 
-    udf[Long, Long, Long, Long, Long, Long, Long, Long]( (fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia) =>
+    udf[java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, Long]( (fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia) =>
       FN_cod_fg_filtrado(BC_configuraciones_list.value, fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia))
 
   }
 
-  def FN_cod_fg_filtrado(configuraciones_list: List[Configuraciones], fecha_dia: Long, cod_anunc: Long,  cod_anunciante_subsidiario: Long,
-                         cod_anuncio: Long, cod_cadena: Long, cod_programa: Any, cod_tipologia: Long): Long = {
+  def FN_cod_fg_filtrado(configuraciones_list: List[Configuraciones], fecha_dia: java.lang.Long, cod_anunc: java.lang.Long,  cod_anunciante_subsidiario: java.lang.Long,
+                         cod_anuncio: java.lang.Long, cod_cadena: java.lang.Long, cod_programa: java.lang.Long, cod_tipologia: java.lang.Long): Long = {
 
     var result = 0L
 
