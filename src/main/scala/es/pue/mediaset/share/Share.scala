@@ -55,6 +55,7 @@ object Share {
 
     val tb_configuraciones: DataFrame = salesforce.get_tb_configuraciones(spark, salesforce.query_tb_configuraciones)
     tb_configuraciones.createOrReplaceTempView("tb_configuraciones")
+    tb_configuraciones.show(1000)
 
     val tb_eventos: DataFrame = salesforce.get_tb_eventos(spark, salesforce.query_tb_eventos)
     tb_eventos.createOrReplaceTempView("tb_eventos")
@@ -919,11 +920,8 @@ object Share {
       NOM_FG_PUB_COMPARTIDA,
       COD_FG_AUTOPROMO,
       NOM_FG_AUTOPROMO,
-      DES_PROGRAMA,
+      NOM_PROGRAMA,
       COD_PROGRAMA,
-      "" AS DES_PROGRAMA,
-      --0 AS COD_PROGRAMA,
-      --CAST(0 AS BIGINT) AS COD_PROGRAMA,
       -- COLUMNAS SOBRE LAS QUE SE AGREGARÁ
         CANT_PASES,
       GRPS_BRUTOS,
@@ -1028,7 +1026,7 @@ object Share {
                                NOM_FG_PUB_COMPARTIDA,
                                COD_FG_AUTOPROMO,
                                NOM_FG_AUTOPROMO,
-                               DES_PROGRAMA,
+                               NOM_PROGRAMA,
                                COD_PROGRAMA,
                                SUM(CANT_PASES) AS CANT_PASES,
                                SUM(GRPS_BRUTOS) AS GRPS_BRUTOS,
@@ -1121,7 +1119,7 @@ object Share {
                                NOM_FG_PUB_COMPARTIDA,
                                COD_FG_AUTOPROMO,
                                NOM_FG_AUTOPROMO,
-                               DES_PROGRAMA,
+                               NOM_PROGRAMA,
                                COD_PROGRAMA
                              """)
   }
