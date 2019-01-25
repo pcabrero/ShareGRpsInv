@@ -330,7 +330,7 @@ object Share {
 
     for(elem <- configuraciones_list){
       if(
-        (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa == null
+        (elem.des_accion.equalsIgnoreCase("Filtrar") && elem.cod_programa == null
           &&
             (elem.cod_campana == null
              && (elem.cod_anunciante_pe == cod_anunc || elem.cod_anunciante_kantar == cod_anunciante_subsidiario)
@@ -345,7 +345,7 @@ object Share {
             )
           )
         ||
-          (elem.des_accion.equalsIgnoreCase("Filtrar") && cod_programa != null
+          (elem.des_accion.equalsIgnoreCase("Filtrar") && elem.cod_programa != null
             && (elem.cod_campana == null
           && (elem.cod_anunciante_pe == null || elem.cod_anunciante_kantar == null)
           && elem.cod_cadena == cod_cadena
