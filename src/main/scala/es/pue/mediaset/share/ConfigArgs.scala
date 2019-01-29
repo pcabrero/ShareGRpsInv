@@ -22,6 +22,7 @@ class ConfigArgs(args: Array[String]) extends Serializable {
   private val OPT_PROCESS_MONTH = ("pm", "process-month")
   private val OPT_PARAMETRIZATION_FILE_NAME = (null, "parametrization-filename")
   private val OPT_PRO = (null, "pro")
+  private val OPT_PROCESS = (null, "process")
 
   // Valores por defecto
   private var MES_EN_CURSO = ""
@@ -30,6 +31,7 @@ class ConfigArgs(args: Array[String]) extends Serializable {
 //  private var MES_EN_CURSO_POR_DEFECTO: String  = ""
   private var PARAMETRIZATION_FILE_NAME = ""
   private var PRO = "pre"
+  private var PROCESS : String = null
 
   // Argumentos aceptados por linea de comandos
   private val options = new Options()
@@ -44,6 +46,9 @@ class ConfigArgs(args: Array[String]) extends Serializable {
 
   options.addOption(OPT_PRO._1, OPT_PRO._2, false,
     "Establece el entorno de ejecución")
+
+  options.addOption(OPT_PROCESS._1, OPT_PROCESS._2, true,
+    "Selecciona el proceso a ejecutar")
 
   // Procesar argumentos de linea de comandos
   try {
@@ -79,6 +84,8 @@ class ConfigArgs(args: Array[String]) extends Serializable {
 
     if (cmd.hasOption(OPT_PRO._2)) PRO = "pro"
 
+    if (cmd.hasOption(OPT_PROCESS._2)) PROCESS = cmd.getOptionValue(OPT_PROCESS._2)
+
   }
 
   def mostrarAyuda: Boolean = help
@@ -96,7 +103,7 @@ class ConfigArgs(args: Array[String]) extends Serializable {
     formatter.setWidth(160)
     formatter.setDescPadding(5)
 
-    val usage = s"spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.PrepararDatos"
+    val usage = s"spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.Main"
 
     formatter.printHelp(usage, options)
   }
@@ -107,5 +114,7 @@ class ConfigArgs(args: Array[String]) extends Serializable {
     sdf_yyyymmdd.setTimeZone(tz)
     sdf_yyyymmdd.format(Calendar.getInstance(tz).getTime)
   }
+
+  def getProcess : String = PROCESS
 
 }

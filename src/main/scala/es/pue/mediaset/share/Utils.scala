@@ -39,5 +39,10 @@ class Utils {
 //
 //  }
 
+  def showRunningProcess(process : String) : Unit = {
+
+    println(s"Mediaset - Running $process")
+
+  }
 
 }

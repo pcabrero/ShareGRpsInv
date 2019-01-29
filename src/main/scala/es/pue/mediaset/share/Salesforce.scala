@@ -14,21 +14,23 @@ class Salesforce {
 
   var timezone = "UTC"
 
-  val query_dim_linea_negocio = "select COD_COMUNICACION__c, COD_TIPOLOGIA__c, cod_tp_categr_km__c, cod_tp_computo_km__c, cod_tp_lineanegocio_km__c, DES_COMUNICACION__c, DES_TIPOLOGIA__c, FECHA_FIN__c, FECHA_INI__c, nom_tp_categr_km__c, nom_tp_computo_km__c, nom_tp_lineanegocio_km__c FROM dim_linea_negocio__c"
+  val query_dim_linea_negocio = "select Name, COD_COMUNICACION__c, COD_TIPOLOGIA__c, cod_tp_categr_km__c, cod_tp_computo_km__c, cod_tp_lineanegocio_km__c, DES_COMUNICACION__c, DES_TIPOLOGIA__c, FECHA_FIN__c, FECHA_INI__c, nom_tp_categr_km__c, nom_tp_computo_km__c, nom_tp_lineanegocio_km__c FROM dim_linea_negocio__c"
 
-  val query_dim_agrup_cadenas = "select COD_CADENA__c, COD_GRUPO_N0__c, COD_GRUPO_N1__c, COD_GRUPO_N2__c, DES_CADENA__c, DES_GRUPO_N0__c, DES_GRUPO_N1__c, DES_GRUPO_N2__c, FECHA_FIN__c, FECHA_INI__c, COD_FORTA__c, DES_FORTA__c FROM DIM_AGRUP_CADENAS__c"
-//  val query_dim_agrup_cadenas = "select COD_CADENA__c, COD_GRUPO_N0__c, COD_GRUPO_N1__c, COD_GRUPO_N2__c, DES_CADENA__c, DES_GRUPO_N0__c, DES_GRUPO_N1__c, DES_GRUPO_N2__c, FECHA_FIN__c, FECHA_INI__c, COD_FORTA__c, DES_FORTA__c, DESCRIPCION_N0__c FROM DIM_AGRUP_CADENAS__c"
+  val query_dim_agrup_cadenas = "select Name, COD_CADENA__c, COD_GRUPO_N0__c, COD_GRUPO_N1__c, COD_GRUPO_N2__c, DES_CADENA__c, DES_GRUPO_N0__c, DES_GRUPO_N1__c, DES_GRUPO_N2__c,  FECHA_FIN__c, FECHA_INI__c, COD_FORTA__c, DES_FORTA__c FROM DIM_AGRUP_CADENAS__c"
 
   val query_tb_parametros = "select DES_PARAMETRO__c, FECHA_FIN__c, FECHA_INI__c, NOM_PARAM__c, VALOR__c FROM NOM_PARAM__c"
-  val query_tb_coeficientes = "select Anyo__c, COEFICIENTE__c, DES_CADENA__c, FECHA_ACT__c, FECHA_FIN__c, FECHA_INI__c, FLAG__c, INDICE__c, MAX_RANGO__c, Mes__c, MIN_RANGO__c FROM TABLA_COEFICIENTE__c"
-  val query_tb_configuraciones = "select COD_ACCION__c, COD_ANUNCIANTE_KANTAR__c, COD_ANUNCIANTE_PE__c, COD_CADENA__c, COD_CAMPANA__c, COD_PROGRAMA__c, COD_TIPOLOGIA__c, DES_ACCION__c, DES_ANUNCIANTE_KANTAR__c, DES_ANUNCIANTE_PE__c, DES_CADENA__c, DES_CAMPANA__c, DES_PROGRAMA__c, DES_TIPOLOGIA__c, FECHA_FIN__c, FECHA_INI__c, IIEE2_Formato__c FROM TB_CONFIGURACIONES__c"
-  val query_tb_eventos = "select COD_CADENA__c, COD_EVENTO__c, COD_PROGRAMA__c, DES_CADENA__c, DES_EVENTO__c, DES_PROGRAMA__c, FECHA_FIN__c, FECHA_INI__c, FLAG__c FROM TB_EVENTOS__c "
+  val query_tb_coeficientes = "select Name, COD_COEFICIENTE__c, COD_CADENA__c, Anyo__c, COEFICIENTE__c, DES_CADENA__c, FECHA_ACT__c, FECHA_FIN__c, FECHA_INI__c, FLAG__c, INDICE__c, MAX_RANGO__c, Mes__c, MIN_RANGO__c FROM TABLA_COEFICIENTE__c"
+  val query_tb_configuraciones = "select Name, COD_ACCION__c, COD_ANUNCIANTE_KANTAR__c, COD_ANUNCIANTE_PE__c, COD_CADENA__c, COD_CAMPANA__c, COD_PROGRAMA__c, COD_TIPOLOGIA__c, DES_ACCION__c, DES_ANUNCIANTE_KANTAR__c, DES_ANUNCIANTE_PE__c, DES_CADENA__c, DES_CAMPANA__c, DES_PROGRAMA__c, DES_TIPOLOGIA__c, FECHA_FIN__c, FECHA_INI__c, IIEE2_Formato__c FROM TB_CONFIGURACIONES__c"
+  val query_tb_eventos = "select Name, RELACION_EVENTOS__c, COD_CADENA__c, COD_EVENTO__c, COD_PROGRAMA__c, DES_CADENA__c, DES_EVENTO__c, DES_PROGRAMA__c, FECHA_FIN__c, FECHA_INI__c, FLAG__c FROM TB_EVENTOS__c "
   val query_cat_gr_cadenas_n2 = "select Name, DES_GRUPO_N2__c, FECHA_FIN__c, FECHA_INI__c FROM CAT_GR_CADENAS_N2__c"
   val query_cat_gr_cadenas_n1 = "select Name, DES_GRUPO_N1__c, FECHA_FIN__c, FECHA_INI__c FROM CAT_GR_CADENAS_N1__c"
   val query_cat_gr_cadenas = "select Name, DES_GRUPO_N0__c, FECHA_FIN__c, FECHA_INI__c FROM CAT_GR_CADENAS__c"
   val query_cat_eventos = "select Name, ACTIVO__c, DES_EVENTO__c, FECHA_FIN__c, FECHA_INI__c, INDICE__c FROM CAT_EVENTOS__c"
   val query_cat_coeficientes = "select Name, DES_COEF__c, FECHA_FIN__c, FECHA_INI__c FROM CAT_COEFICIENTES__c"
   val query_cat_nuevas_cadenas = "select Name, DES_CADENA_N__c, FECHA_FIN__c, FECHA_INI__c FROM CAT_NUEVAS_CADENAS__c"
+
+  // TODO nueva tabla
+  val query_inversionagregada = "select Name, GRUPO_CADENA__c, COEF_CORRECTOR__c, GRPs__c, INV_CALCU_AGREGADA__c, INV_EST_INFOADEX__c, INV_EST_PE__c, FECHA__c, MES__c, ANHO_TEXT__c, ANHO__c FROM TABLA_INVERSIONAGREGADA__c"
 
   def setCredentials(cfg : Properties, environment : String) : Unit = {
 
@@ -39,10 +41,10 @@ class Salesforce {
   }
 
   def setTimeZone(timezone : String) : Unit = {
-    
+
     if(timezone != null){
-        this.timezone = timezone
-    } 
+      this.timezone = timezone
+    }
 
   }
 
@@ -50,11 +52,42 @@ class Salesforce {
     spark.read.format("com.springml.salesforce").option("login", login).option("username", username).option("password", password).option("soql", query).option("version", "37.0").load()
   }
 
+  def get_tb_inversion_agregada(spark: SparkSession, query: String): DataFrame = {
+    val tb_inversion_agregada = getDataFrame(spark, query)
+
+    // TODO revisar tipos
+    tb_inversion_agregada
+      .withColumnRenamed("Name", "inversion_agregada_number")
+      .withColumnRenamed("GRUPO_CADENA__c", "grupo_cadena")
+      .withColumnRenamed("COEF_CORRECTOR__c", "coef_corrector")
+      .withColumnRenamed("GRPs__c", "grps")
+      .withColumnRenamed("INV_CALCU_AGREGADA__c", "inv_calcu_agregada")
+      .withColumnRenamed("INV_EST_INFOADEX__c", "inv_est_infoadex")
+      .withColumnRenamed("INV_EST_PE__c", "inv_est_pe")
+      .withColumnRenamed("FECHA__c", "fecha")
+      .withColumnRenamed("MES__c", "mes")
+      .withColumnRenamed("ANHO_TEXT__c", "anho_text")
+      .withColumnRenamed("ANHO__c", "anho")
+      .withColumn("inversion_agregada_number", col("inversion_agregada_number").cast(DoubleType))
+      .withColumn("grupo_cadena", col("grupo_cadena").cast(StringType))
+      .withColumn("coef_corrector", col("coef_corrector").cast(DoubleType))
+      .withColumn("grps", col("grps").cast(DoubleType))
+      .withColumn("inv_calcu_agregada", col("inv_calcu_agregada").cast(DoubleType))
+      .withColumn("inv_est_infoadex", col("inv_est_infoadex").cast(DoubleType))
+      .withColumn("inv_est_pe", col("inv_est_pe").cast(DoubleType))
+      .withColumn("fecha", col("fecha").cast(StringType))
+      .withColumn("mes", col("mes").cast(IntegerType))
+      .withColumn("anho_text", col("anho_text").cast(StringType))
+      .withColumn("anho", col("anho").cast(IntegerType))
+
+  }
+
   def get_dim_linea_negocio(spark: SparkSession, query: String): DataFrame = {
 
     val dim_linea_negocio = getDataFrame(spark, query)
 
     dim_linea_negocio
+      //      .withColumnRenamed("Name", "IIEE_number")
       .withColumnRenamed("cod_comunicacion__c", "cod_comunicacion")
       .withColumnRenamed("cod_tipologia__c", "cod_tipologia")
       .withColumnRenamed("cod_tp_categr_km__c", "cod_tp_categr_km" )
@@ -79,6 +112,7 @@ class Salesforce {
       .withColumn("nom_tp_computo_km", col("nom_tp_computo_km").cast(StringType))
       .withColumn("cod_comunicacion", col("cod_comunicacion").cast(IntegerType))
       .withColumn("cod_comunicacion", col("cod_comunicacion").cast(IntegerType))
+      //      .withColumn("IIEE_number", col("IIEE_number").cast(LongType))
       .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
       .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
   }
@@ -88,7 +122,8 @@ class Salesforce {
     val dim_agrup_cadenas = getDataFrame(spark, query)
 
     dim_agrup_cadenas
-      .withColumnRenamed("des_grupo_n1__c", "des_grupo_n1" )
+      .withColumnRenamed("Name", "agrupacion_cadena_number")
+      .withColumnRenamed("des_grupo_n1__c", "des_grupo_n1")
       .withColumnRenamed("des_grupo_n2__c", "des_grupo_n2")
       .withColumnRenamed("des_grupo_n0__c", "des_grupo_n0")
       .withColumnRenamed("fecha_fin__c", "fecha_fin")
@@ -100,7 +135,10 @@ class Salesforce {
       .withColumnRenamed("cod_grupo_n2__c", "cod_grupo_n2")
       .withColumnRenamed("cod_grupo_n1__c", "cod_grupo_n1")
       .withColumnRenamed("des_cadena__c", "des_cadena")
-//      .withColumnRenamed("DESCRIPCION_N0__c", "descripcion_n0")
+//            .withColumnRenamed("relacion_n0__c", "relacion_n0")
+//            .withColumnRenamed("relacion_n1__c", "relacion_n1")
+//            .withColumnRenamed("relacion_n2__c", "relacion_n2")
+      .withColumn("agrupacion_cadena_number", col("agrupacion_cadena_number").cast(IntegerType))
       .withColumn("cod_grupo_n0", col("cod_grupo_n0").cast(IntegerType))
       .withColumn("des_grupo_n0", col("des_grupo_n0").cast(StringType))
       .withColumn("cod_grupo_n1", col("cod_grupo_n1").cast(IntegerType))
@@ -109,6 +147,9 @@ class Salesforce {
       .withColumn("des_grupo_n2", col("des_grupo_n2").cast(StringType))
       .withColumn("cod_cadena", col("cod_cadena").cast(IntegerType))
       .withColumn("des_cadena", col("des_cadena").cast(StringType))
+//            .withColumn("relacion_n0", col("relacion_n0").cast(IntegerType))
+      //      .withColumn("relacion_n1", col("relacion_n1").cast(IntegerType))
+      //      .withColumn("relacion_n2", col("relacion_n2").cast(IntegerType))
       .withColumn("cod_forta", col("cod_forta").cast(IntegerType))
       .withColumn("des_forta", col("des_forta").cast(StringType))
       .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
@@ -138,8 +179,11 @@ class Salesforce {
     val tb_coeficientes = getDataFrame(spark, query)
 
     tb_coeficientes
+      //      .withColumnRenamed("Name", "coeficiente_number")
+      .withColumnRenamed("COD_COEFICIENTE__c", "cod_coeficiente")
       .withColumnRenamed("Anyo__c", "Anyo" )
       .withColumnRenamed("COEFICIENTE__c", "COEFICIENTE")
+      .withColumnRenamed("COD_CADENA__c", "COD_CADENA")
       .withColumnRenamed("DES_CADENA__c", "DES_CADENA")
       .withColumnRenamed("FECHA_ACT__c", "FECHA_ACT")
       .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
@@ -150,14 +194,17 @@ class Salesforce {
       .withColumnRenamed("Mes__c", "Mes")
       .withColumnRenamed("MIN_RANGO__c", "MIN_RANGO")
       .withColumn("Anyo", col("Anyo").cast(StringType))
+      //      .withColumn("coeficiente_number", col("coeficiente_number").cast(StringType))
+      .withColumn("cod_coeficiente", col("cod_coeficiente").cast(StringType))
+      .withColumn("cod_cadena", col("cod_cadena").cast(LongType))
       .withColumn("COEFICIENTE", col("COEFICIENTE").cast(StringType))
       .withColumn("DES_CADENA", col("DES_CADENA").cast(StringType))
       .withColumn("FECHA_ACT", from_utc_timestamp(unix_timestamp(col("FECHA_ACT"), "yyyy-MM-dd").cast(TimestampType), timezone))
       .withColumn("FLAG", col("FLAG").cast(IntegerType))
-      .withColumn("INDICE", col("INDICE").cast(StringType))
-      .withColumn("MAX_RANGO", col("MAX_RANGO").cast(StringType))
+      .withColumn("INDICE", col("INDICE").cast(DoubleType))
+      .withColumn("MAX_RANGO", col("MAX_RANGO").cast(DoubleType))
       .withColumn("Mes", col("Mes").cast(StringType))
-      .withColumn("MIN_RANGO", col("MIN_RANGO").cast(StringType))
+      .withColumn("MIN_RANGO", col("MIN_RANGO").cast(DoubleType))
       .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
       .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
@@ -168,6 +215,7 @@ class Salesforce {
     val tb_configuraciones = getDataFrame(spark, query)
 
     tb_configuraciones
+      //      .withColumnRenamed("Name", "configuracion_number" )
       .withColumnRenamed("COD_ACCION__c", "COD_ACCION" )
       .withColumnRenamed("COD_ANUNCIANTE_KANTAR__c", "COD_ANUNCIANTE_KANTAR")
       .withColumnRenamed("COD_ANUNCIANTE_PE__c", "COD_ANUNCIANTE_PE")
@@ -185,6 +233,7 @@ class Salesforce {
       .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumnRenamed("IIEE2_Formato__c", "IIEE2_Formato")
+      //      .withColumn("configuracion_number", col("configuracion_number").cast(IntegerType))
       .withColumn("COD_ACCION", col("COD_ACCION").cast(IntegerType))
       .withColumn("COD_ANUNCIANTE_KANTAR", col("COD_ANUNCIANTE_KANTAR").cast(IntegerType))
       .withColumn("COD_ANUNCIANTE_PE", col("COD_ANUNCIANTE_PE").cast(IntegerType))
@@ -210,6 +259,7 @@ class Salesforce {
     val tb_eventos = getDataFrame(spark, query)
 
     tb_eventos
+      //      .withColumnRenamed("Name", "evento_number" )
       .withColumnRenamed("COD_CADENA__c", "COD_CADENA" )
       .withColumnRenamed("COD_EVENTO__c", "COD_EVENTO")
       .withColumnRenamed("COD_PROGRAMA__c", "COD_PROGRAMA")
@@ -219,6 +269,9 @@ class Salesforce {
       .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumnRenamed("FLAG__c", "FLAG")
+      //      .withColumnRenamed("RELACION_EVENTOS__c", "RELACION_EVENTOS")
+      //      .withColumn("evento_number", col("evento_number").cast(IntegerType))
+      //      .withColumn("RELACION_EVENTOS", col("RELACION_EVENTOS").cast(IntegerType))
       .withColumn("COD_CADENA", col("COD_CADENA").cast(IntegerType))
       .withColumn("COD_EVENTO", col("COD_EVENTO").cast(IntegerType))
       .withColumn("COD_PROGRAMA", col("COD_PROGRAMA").cast(IntegerType))
@@ -238,12 +291,9 @@ class Salesforce {
     cat_gr_cadenas_n2
       .withColumnRenamed("Name", "COD_GRUPO_N2" )
       .withColumnRenamed("DES_GRUPO_N2__c", "DES_GRUPO_N2")
-      .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
-      .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_GRUPO_N2", col("COD_GRUPO_N2").cast(LongType))
       .withColumn("DES_GRUPO_N2", col("DES_GRUPO_N2").cast(StringType))
-      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
-      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
+
 
   }
 
@@ -254,12 +304,9 @@ class Salesforce {
     cat_gr_cadenas_n1
       .withColumnRenamed("Name", "COD_GRUPO_N1" )
       .withColumnRenamed("DES_GRUPO_N1__c", "DES_GRUPO_N1")
-      .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
-      .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_GRUPO_N1", col("COD_GRUPO_N1").cast(IntegerType))
       .withColumn("DES_GRUPO_N1", col("DES_GRUPO_N1").cast(StringType))
-      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
-      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
+
   }
 
   def get_cat_gr_cadenas(spark: SparkSession, query: String): DataFrame = {
@@ -269,12 +316,9 @@ class Salesforce {
     cat_gr_cadenas
       .withColumnRenamed("Name", "COD_GRUPO_N0" )
       .withColumnRenamed("DES_GRUPO_N0__c", "DES_GRUPO_N0")
-      .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
-      .withColumnRenamed("FECHA_INI__c", "FECHA_INI")
       .withColumn("COD_GRUPO_N0", col("COD_GRUPO_N0").cast(IntegerType))
       .withColumn("DES_GRUPO_N0", col("DES_GRUPO_N0").cast(StringType))
-      .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
-      .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
+
 
   }
 
@@ -302,7 +346,7 @@ class Salesforce {
     val cat_coeficientes = getDataFrame(spark, query)
 
     cat_coeficientes
-      .withColumnRenamed("Name", "COD_COEF" )
+      .withColumnRenamed("Name", "COD_COEF")
       .withColumnRenamed("DES_COEF__c", "DES_COEF")
       .withColumnRenamed("FECHA_FIN__c", "FECHA_FIN")
       .withColumnRenamed("FECHA_INI__c", "FECHA_INI")

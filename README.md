@@ -7,7 +7,12 @@ Estos han de estar alojados en un directorio hdfs o en el mismo directorio donde
 ### Running the process
 
 1. Ejecutar proceso en Spark
-spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.PrepararDatos --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties"
+
+// Share
+spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.Main --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties" --process "Share"
+
+//Inversion
+spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.Main --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties" --process "Inversion"
 
 Parametrización: 
 
