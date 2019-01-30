@@ -241,19 +241,19 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val producto_mediaset : List[Int] = spark.sql(
+    val producto_mediaset : List[Long] = spark.sql(
       s"""SELECT DISTINCT cod_producto FROM ${r_sectores_econ.getDBTable} WHERE cod_producto IS NOT NULL
-       """.stripMargin).map(x => x.getInt(0)).collect.toList
+       """.stripMargin).map(x => x.getLong(0)).collect.toList
 
-    val BC_producto_mediaset: Broadcast[List[Int]] = spark.sparkContext.broadcast(producto_mediaset)
+    val BC_producto_mediaset: Broadcast[List[Long]] = spark.sparkContext.broadcast(producto_mediaset)
 
     /************************************************************************************************************/
 
-    val grupo_mediaset: List[Int] = spark.sql(
+    val grupo_mediaset: List[Long] = spark.sql(
       s"""SELECT DISTINCT cod_grupo FROM ${r_sectores_econ.getDBTable} WHERE cod_grupo IS NOT NULL
-       """.stripMargin).map(x => x.getInt(0)).collect.toList
+       """.stripMargin).map(x => x.getLong(0)).collect.toList
 
-    val BC_grupo_mediaset: Broadcast[List[Int]] = spark.sparkContext.broadcast(grupo_mediaset)
+    val BC_grupo_mediaset: Broadcast[List[Long]] = spark.sparkContext.broadcast(grupo_mediaset)
 
     /************************************************************************************************************/
 
@@ -825,16 +825,16 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_cod_fg_prodmediaset(originDF: DataFrame, BC_producto_mediaset: Broadcast[List[Int]]): DataFrame = {
+  def getColumn_cod_fg_prodmediaset(originDF: DataFrame, BC_producto_mediaset: Broadcast[List[Long]]): DataFrame = {
     originDF.withColumn("cod_fg_prodmediaset", UDF_cod_fg_prodmediaset(BC_producto_mediaset)(col("cod_producto")))
   }
 
-  def UDF_cod_fg_prodmediaset(BC_producto_mediaset: Broadcast[List[Int]]): UserDefinedFunction = {
+  def UDF_cod_fg_prodmediaset(BC_producto_mediaset: Broadcast[List[Long]]): UserDefinedFunction = {
 
     udf[Int, Long]( cod_producto => FN_cod_fg_prodmediaset(BC_producto_mediaset.value, cod_producto))
   }
 
-  def FN_cod_fg_prodmediaset(productoMediaset_list: List[Int], cod_producto: Long): Int = {
+  def FN_cod_fg_prodmediaset(productoMediaset_list: List[Long], cod_producto: Long): Int = {
 
     var result = 0
       if ( productoMediaset_list.contains(cod_producto)) {
@@ -845,15 +845,15 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_cod_fg_grupomediaset(originDF: DataFrame, BC_grupo_mediaset: Broadcast[List[Int]]): DataFrame = {
+  def getColumn_cod_fg_grupomediaset(originDF: DataFrame, BC_grupo_mediaset: Broadcast[List[Long]]): DataFrame = {
     originDF.withColumn("cod_fg_grupomediaset", UDF_cod_fg_grupomediaset(BC_grupo_mediaset)(col("cod_grupo")))
   }
 
-  def UDF_cod_fg_grupomediaset(BC_grupo_mediaset: Broadcast[List[Int]]): UserDefinedFunction = {
+  def UDF_cod_fg_grupomediaset(BC_grupo_mediaset: Broadcast[List[Long]]): UserDefinedFunction = {
     udf[Int, Long](cod_grupo => FN_cod_fg_grupomediaset(BC_grupo_mediaset.value, cod_grupo))
   }
 
-  def FN_cod_fg_grupomediaset(grupoMediaset_list: List[Int], cod_grupo: Long): Int = {
+  def FN_cod_fg_grupomediaset(grupoMediaset_list: List[Long], cod_grupo: Long): Int = {
 
     var result = 0
       if( grupoMediaset_list.contains(cod_grupo)) {
