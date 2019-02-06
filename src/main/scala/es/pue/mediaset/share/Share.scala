@@ -155,17 +155,17 @@ object Share {
 
     val codigos_de_cadenas_campemimediaset: List[Long] = spark.sql(
       s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE des_grupo_n1 = "MEDIASET" AND cod_cadena IS NOT NULL
-      """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
+      """.stripMargin).map(r => r.getLong(0)).collect.toList
     val BC_codigos_de_cadenas_campemimediaset: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_campemimediaset)
 
     val codigos_de_cadenas_autonomicas: List[Long] = spark.sql(
       s"""SELECT DISTINCT cod_cadena FROM  ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n2 = 30006 AND cod_cadena IS NOT NULL
-       """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
+       """.stripMargin).map(r => r.getLong(0)).collect.toList
     val BC_codigos_de_cadenas_autonomicas: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_autonomicas)
 
     val codigos_de_cadenas_forta: List[Long] = spark.sql(
       s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_forta = 1 AND cod_cadena IS NOT NULL
-         """.stripMargin).map(r => r.getInt(0).toLong).collect.toList
+         """.stripMargin).map(r => r.getLong(0)).collect.toList
     val BC_codigos_de_cadenas_forta: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_forta)
 
 
@@ -1300,3 +1300,4 @@ object Share {
 
 
 }
+
