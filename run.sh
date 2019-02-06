@@ -2,9 +2,9 @@
 
 file="mediaset-share-1.0.4.jar"
 input_path="./target/$file"
-output_path="/tmp/workspace/mediaset"
+output_path="/tmp/workspace_julio/mediaset"
 root_pom_path="."
-ssh_user="francisco"
+ssh_user="julio"
 
 process="Inversion"
 spark_params_dev="--master yarn --deploy-mode cluster --class es.pue.mediaset.share.Share --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename \"mediaset-share.properties\" --process $process "

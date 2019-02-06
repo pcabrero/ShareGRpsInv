@@ -42,7 +42,7 @@ class InversionTest {
 
 
   // TODO Test's cod_fg_prodmediaset ---------------------------------------------------------------------
-
+/*
   @Test
   // Contains cod_cadena
   def FN_cod_fg_prodmediaset_t1(): Unit = {
@@ -111,6 +111,7 @@ class InversionTest {
       cod_grupo))
 
   }
+*/
 
   // TODO Test's importe_pase  ----------------------------------------------------------------------------
 

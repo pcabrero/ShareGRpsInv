@@ -232,10 +232,14 @@ object Inversion {
     val BC_cuota_por_grupo_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(cuota_por_grupo_calc)
 
     /************************************************************************************************************/
-
+/*
     val cadenas_mediaset_grupo_n1: Set[Long] = spark.sql(
       s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n1 = 20001 AND cod_cadena IS NOT NULL
        """.stripMargin).map(x => x.getInt(0).toLong).collect.toSet
+*/
+    val cadenas_mediaset_grupo_n1: Set[Long] = spark.sql(
+      s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n1 = 20001 AND cod_cadena IS NOT NULL
+       """.stripMargin).map(x => x.getLong(0)).collect.toSet
 
     val BC_cadenas_mediaset_grupo_n1: Broadcast[Set[Long]] = spark.sparkContext.broadcast(cadenas_mediaset_grupo_n1)
 
@@ -328,7 +332,7 @@ object Inversion {
     val BC_indice_coeficiente_forta: Broadcast[Double] = spark.sparkContext.broadcast(indice_coeficiente_forta)
 
     /************************************************************************************************************/
-
+/*
     // Columna Coef Cadena
     val coef_cadena_calc: Map[Long, Double] = spark.sql(
       s"""
@@ -337,6 +341,16 @@ object Inversion {
          |WHERE tb_coeficientes.des_cadena = $dim_agrup_cadenas.des_grupo_n2
          |AND tb_coeficientes.coeficiente = "CADENA_N2"
        """.stripMargin).collect().map( x => x(0).asInstanceOf[Int].toLong -> x(1).asInstanceOf[Double]).toMap
+*/
+
+    // Columna Coef Cadena
+    val coef_cadena_calc: Map[Long, Double] = spark.sql(
+      s"""
+         |SELECT $dim_agrup_cadenas.cod_cadena, tb_coeficientes.indice
+         |FROM tb_coeficientes, ${dim_agrup_cadenas.getDBTable}
+         |WHERE tb_coeficientes.des_cadena = $dim_agrup_cadenas.des_grupo_n2
+         |AND tb_coeficientes.coeficiente = "CADENA_N2"
+       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
     val BC_coef_cadena_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_cadena_calc)
 
