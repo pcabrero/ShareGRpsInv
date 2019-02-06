@@ -107,6 +107,9 @@ object Inversion {
       * Salesforce y se modela a un DataFrame con sus correspondientes cambios en los nombres de las columnas y en su tipo
       */
 
+    val dim_agrup_cadenas_DF: DataFrame = salesforce.get_dim_agrup_cadenas(spark, salesforce.query_dim_agrup_cadenas)
+    persistAsTable(dim_agrup_cadenas_DF, dim_agrup_cadenas)
+
     val tb_coeficientes_DF: DataFrame = salesforce.get_tb_coeficientes(spark, salesforce.query_tb_coeficientes)
     registerTemporalTable(tb_coeficientes_DF, s"$tb_coeficientes")
 
