@@ -46,6 +46,8 @@ class Entity(parametrizationCfg: Properties, table : String, isInputTable : Bool
 
     if(defaultLocation.endsWith("/")){
       defaultLocation = defaultLocation.dropRight(1) + s"/$table/"
+    }else{
+      defaultLocation = defaultLocation + s"/$table/"
     }
 
     defaultLocation
