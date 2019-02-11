@@ -6,6 +6,7 @@ import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import scala.collection.immutable.Map
+import org.apache.spark.sql.UDFRegistration
 
 object Inversion {
 
@@ -100,7 +101,7 @@ object Inversion {
 
     val spark = SparkSession.builder.appName("mediaset-inv").getOrCreate()
     import spark.implicits._
-    
+
     /************************************************************************************************************/
     /**
       * Objetos recuperados desde Salesforce. Se hace una llamada al método correspondiente que recupera la información de
@@ -264,37 +265,38 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val costebase_marca: Double = spark.sql(
-      s"""SELECT SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
+    val costebase_marca: Map[Long, Double] = spark.sql(
+      s"""SELECT $fctd_share_grps.cod_marca, SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
          |FROM ${ordenado.getDBTable}, ${fctd_share_grps.getDBTable} WHERE $ordenado.cod_marca
-         |= $fctd_share_grps.cod_marca
-           """.stripMargin).collect.map(x => x.getDouble(0)).toSet.head
+         |= $fctd_share_grps.cod_marca GROUP BY $fctd_share_grps.cod_marca
+           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
-    val BC_costebase_marca: Broadcast[Double] = spark.sparkContext.broadcast(costebase_marca)
+    val BC_costebase_marca: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_marca)
 
-    val costebase_anunc: Double = spark.sql(
-          s"""SELECT SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
+    val costebase_anunc: Map[Long, Double] = spark.sql(
+          s"""SELECT $fctd_share_grps.cod_anunc, SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
              |FROM ${ordenado.getDBTable}, ${fctd_share_grps.getDBTable} WHERE $ordenado.cod_anunc
-             |= $fctd_share_grps.cod_anunc
-           """.stripMargin).collect.map(x => x.getDouble(0)).toSet.head
+             |= $fctd_share_grps.cod_anunc GROUP BY $fctd_share_grps.cod_anunc
+           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
-    val BC_costebase_anunc: Broadcast[Double] = spark.sparkContext.broadcast(costebase_anunc)
+    val BC_costebase_anunc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_anunc)
 
-    val costebase_producto: Double = spark.sql(
-      s"""SELECT SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
+    val costebase_producto: Map[Long, Double] = spark.sql(
+      s"""SELECT $fctd_share_grps.cod_producto, SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
          |FROM ${ordenado.getDBTable}, ${fctd_share_grps.getDBTable} WHERE $ordenado.cod_producto
-         |= $fctd_share_grps.cod_producto
-           """.stripMargin).collect.map(x => x.getDouble(0)).toSet.head
+         |= $fctd_share_grps.cod_producto GROUP BY $fctd_share_grps.cod_producto
+           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
-    val BC_costebase_producto: Broadcast[Double] = spark.sparkContext.broadcast(costebase_producto)
+    val BC_costebase_producto: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_producto)
 
-    val costebase_grupo: Double = spark.sql(
-      s"""SELECT SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
+    val costebase_grupo: Map[Long, Double] = spark.sql(
+      s"""SELECT $fctd_share_grps.cod_grupo, SUM($ordenado.importe_pase) / SUM($fctd_share_grps.grps_20)
          |FROM ${ordenado.getDBTable}, ${fctd_share_grps.getDBTable} WHERE $ordenado.cod_grupo
-         |= $fctd_share_grps.cod_grupo
-           """.stripMargin).collect.map(x => x.getDouble(0)).toSet.head
+         |= $fctd_share_grps.cod_grupo GROUP BY $fctd_share_grps.cod_grupo
+           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
-    val BC_costebase_grupo: Broadcast[Double] = spark.sparkContext.broadcast(costebase_grupo)
+    val BC_costebase_grupo: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_grupo)
+
 
     /************************************************************************************************************/
 
@@ -411,7 +413,7 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val fctm_share_inv_col_2: DataFrame = getColumn_costebase(fctm_share_inv_col_0_3, BC_costebase_marca, BC_costebase_anunc, BC_costebase_producto, BC_costebase_grupo )
+    val fctm_share_inv_col_2: DataFrame = getColumn_costebase(spark, fctm_share_inv_col_0_3, BC_costebase_marca, BC_costebase_anunc, BC_costebase_producto, BC_costebase_grupo )
 
     /************************************************************************************************************/
 
@@ -754,7 +756,9 @@ object Inversion {
 
     val newDF = spark.sql(s"""SELECT * FROM $fctm_share_inv""")
 
-    persistAsTableShareINV(newDF, fctm_share_inv)
+    val toPartitionDF = newDF.withColumn("fecha_part", expr("substring(fecha_dia, 1, 7)"))
+
+    persistAsTableShareINV(toPartitionDF, fctm_share_inv)
 
   }
 
@@ -777,7 +781,7 @@ object Inversion {
     */
   def persistAsTableShareINV(newDF: DataFrame, table: Entity): Unit = {
 
-    newDF.write.mode("overwrite").format(table.getFormat).option("compression", table.getCompression).option("path", table.getLocation).saveAsTable(table.getDBTable)
+    newDF.write.partitionBy("fecha_part").mode("overwrite").format(table.getFormat).option("compression", table.getCompression).option("path", table.getLocation).saveAsTable(table.getDBTable)
   }
 
 
@@ -881,35 +885,38 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_costebase( originDF: DataFrame, BC_costebase_marca: Broadcast[Double], BC_costebase_anunc: Broadcast[Double],
-                          BC_costebase_producto: Broadcast[Double], BC_costebase_grupo: Broadcast[Double]): DataFrame = {
+  def getColumn_costebase(spark: SparkSession, originDF: DataFrame, BC_costebase_marca: Broadcast[Map[Long, Double]], BC_costebase_anunc: Broadcast[Map[Long, Double]],
+                          BC_costebase_producto: Broadcast[Map[Long, Double]], BC_costebase_grupo: Broadcast[Map[Long, Double]]): DataFrame = {
 
-    originDF.withColumn("costebase", UDF_costebase(BC_costebase_marca, BC_costebase_anunc,
+    import spark.implicits._
+
+    originDF.withColumn("costebase", when($"cod_fg_cadmediaset" =!= 1,
+      UDF_costebase(BC_costebase_marca, BC_costebase_anunc,
       BC_costebase_producto, BC_costebase_grupo)(col("cod_fg_cadmediaset"), col("cod_fg_campemimediaset"), col("cod_fg_anuncmediaset"),
-      col("cod_fg_prodmediaset"), col("cod_fg_grupomediaset"), col("importe_pase"), col("grps_20")))
+      col("cod_fg_prodmediaset"), col("cod_fg_grupomediaset"), col("cod_marca"), col("cod_anunc"),
+      col("cod_producto"), col("cod_grupo"))).otherwise(when($"cod_fg_cadmediaset" === 1, $"importe_pase" / $"grps_20")))
+
   }
 
-  def UDF_costebase(BC_costebase_marca: Broadcast[Double], BC_costebase_anunc: Broadcast[Double],
-                    BC_costebase_producto: Broadcast[Double], BC_costebase_grupo: Broadcast[Double]): UserDefinedFunction = {
-    udf[Double, Int, Int, Int, Int, Int, Double, Double]( (cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20) => FN_costebase(BC_costebase_marca.value,
-      BC_costebase_anunc.value, BC_costebase_producto.value, BC_costebase_grupo.value, cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20))
+  def UDF_costebase(BC_costebase_marca: Broadcast[Map[Long, Double]], BC_costebase_anunc: Broadcast[Map[Long, Double]],
+                    BC_costebase_producto: Broadcast[Map[Long, Double]], BC_costebase_grupo: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
+    udf[Double, Int, Int, Int, Int, Int, Long, Long, Long, Long]((cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, cod_marca, cod_anunc, cod_producto, cod_grupo) => FN_costebase(BC_costebase_marca.value,
+      BC_costebase_anunc.value, BC_costebase_producto.value, BC_costebase_grupo.value, cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, cod_marca, cod_anunc, cod_producto, cod_grupo))
   }
 
-  def FN_costebase(costebase_marca: Double, costebase_anunc: Double, costebase_producto: Double, costebase_grupo: Double, cod_fg_cadmediaset: Int,
-                   cod_fg_campemimediaset: Int, cod_fg_anuncmediaset: Int, cod_fg_prodmediaset: Int, cod_fg_grupomediaset: Int, importe_pase: Double, grps_20: Double): Double = {
+  def FN_costebase(costebase_marca: Map[Long, Double], costebase_anunc: Map[Long, Double], costebase_producto: Map[Long, Double], costebase_grupo: Map[Long, Double], cod_fg_cadmediaset: Int,
+                   cod_fg_campemimediaset: Int, cod_fg_anuncmediaset: Int, cod_fg_prodmediaset: Int, cod_fg_grupomediaset: Int, cod_marca: Long, cod_anunc: Long, cod_producto: Long, cod_grupo: Long): Double = {
 
     var result = 0D
 
     if(cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 1) {
-      result = costebase_marca
+      result = costebase_marca.getOrElse(cod_marca, 0D)
     } else if (cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 1) {
-      result = costebase_anunc
+      result = costebase_anunc.getOrElse(cod_anunc, 0D)
     } else if (cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 1) {
-      result = costebase_producto
+      result = costebase_producto.getOrElse(cod_producto, 0D)
     } else if (cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 0 && cod_fg_grupomediaset == 1) {
-      result = costebase_grupo
-    } else if (cod_fg_cadmediaset == 1) {
-      result = importe_pase / grps_20
+      result = costebase_grupo.getOrElse(cod_grupo, 0D)
     }
     result
   }

@@ -1,0 +1,11 @@
+CREATE EXTERNAL TABLE mediaset.nom_param (
+    PARAMETRO_NUMBER STRING,
+    NOM_PARAM	STRING,
+    DES_PARAMETRO STRING,
+    VALOR	STRING,
+    FECHA_INI	STRING	COMMENT "fecha inicio de filtro	SFDC	SFDC	NA",
+    FECHA_FIN	STRING	COMMENT "fecha fin de filtro	SFDC	SFDC	NA"
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ","
+LOCATION '/user/julio/mediaset/nom_param/';

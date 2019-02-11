@@ -47,4 +47,4 @@ echo $msg_end
 # ssh francisco@pueworker1.pue.es -- spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.PrepararDatos --files hdfs:///user/francisco/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties"
 # Param local filesystem
 #ssh $ssh_user@pueworker1.pue.es -- spark2-submit --master yarn --deploy-mode cluster --class es.pue.mediaset.share.Share --files file:///$output_path/mediaset-share.properties $output_path/$file --parametrization-filename "mediaset-share.properties"
-ssh $ssh_user@pueworker1.pue.es -- spark2-submit $spark_submit_params
+ssh $ssh_user@pueworker1.pue.es -- spark-submit $spark_submit_params

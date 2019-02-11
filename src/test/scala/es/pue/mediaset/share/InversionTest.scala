@@ -117,111 +117,111 @@ class InversionTest {
 
 
   // TODO Test's costebase  ----------------------------------------------------------------------------
-
-  @Test
-  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 1
-  def FN_costebase_t1(): Unit = {
-
-    // Broadcasts
-    val costebase_marca = 2D
-    val costebase_anunc = 10D
-    val costebase_producto = 15D
-    val costebase_grupo = 1D
-    // Falta uno
-
-    // fctm_share_inv
-    val cod_fg_cadmediaset = 0
-    val cod_fg_campemimediaset = 1
-    val cod_fg_anuncmediaset = 0
-    val cod_fg_prodmediaset = 0
-    val cod_fg_grupomediaset = 0
-    val importe_pase = 2D
-    val grps_20 = 10D
-
-        assertEquals(2D,  Inversion.FN_costebase(
-          costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
-          cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
-          cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
-  }
-
-  @Test
-  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 1
-  def FN_costebase_t2(): Unit = {
-
-    // Broadcasts
-    val costebase_marca = 2D
-    val costebase_anunc = 10D
-    val costebase_producto = 15D
-    val costebase_grupo = 1D
-    // Falta uno
-
-    // fctm_share_inv
-    val cod_fg_cadmediaset = 0
-    val cod_fg_campemimediaset = 0
-    val cod_fg_anuncmediaset = 1
-    val cod_fg_prodmediaset = 0
-    val cod_fg_grupomediaset = 0
-    val importe_pase = 2D
-    val grps_20 = 10D
-
-    assertEquals(10D,  Inversion.FN_costebase(
-      costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
-      cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
-      cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
-  }
-
-  @Test
-  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 1
-  def FN_costebase_t3(): Unit = {
-
-    // Broadcasts
-    val costebase_marca = 2D
-    val costebase_anunc = 10D
-    val costebase_producto = 15D
-    val costebase_grupo = 1D
-    // Falta uno
-
-    // fctm_share_inv
-    val cod_fg_cadmediaset = 0
-    val cod_fg_campemimediaset = 0
-    val cod_fg_anuncmediaset = 0
-    val cod_fg_prodmediaset = 1
-    val cod_fg_grupomediaset = 0
-    val importe_pase = 2D
-    val grps_20 = 10D
-
-    assertEquals(15D,  Inversion.FN_costebase(
-      costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
-      cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
-      cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
-  }
-
-  @Test
-  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 0 && cod_fg_grupomediaset == 1
-  def FN_costebase_t4(): Unit = {
-
-    // Broadcasts
-    val costebase_marca = 2D
-    val costebase_anunc = 10D
-    val costebase_producto = 15D
-    val costebase_grupo = 1D
-    // Falta uno
-
-    // fctm_share_inv
-    val cod_fg_cadmediaset = 0
-    val cod_fg_campemimediaset = 0
-    val cod_fg_anuncmediaset = 0
-    val cod_fg_prodmediaset = 0
-    val cod_fg_grupomediaset = 1
-    val importe_pase = 2D
-    val grps_20 = 10D
-
-    assertEquals(1D,  Inversion.FN_costebase(
-      costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
-      cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
-      cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
-  }
-
+//
+//  @Test
+//  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 1
+//  def FN_costebase_t1(): Unit = {
+//
+//    // Broadcasts
+//    val costebase_marca = 2D
+//    val costebase_anunc = 10D
+//    val costebase_producto = 15D
+//    val costebase_grupo = 1D
+//    // Falta uno
+//
+//    // fctm_share_inv
+//    val cod_fg_cadmediaset = 0
+//    val cod_fg_campemimediaset = 1
+//    val cod_fg_anuncmediaset = 0
+//    val cod_fg_prodmediaset = 0
+//    val cod_fg_grupomediaset = 0
+//    val importe_pase = 2D
+//    val grps_20 = 10D
+//
+//        assertEquals(2D,  Inversion.FN_costebase(
+//          costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
+//          cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
+//          cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
+//  }
+//
+//  @Test
+//  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 1
+//  def FN_costebase_t2(): Unit = {
+//
+//    // Broadcasts
+//    val costebase_marca = 2D
+//    val costebase_anunc = 10D
+//    val costebase_producto = 15D
+//    val costebase_grupo = 1D
+//    // Falta uno
+//
+//    // fctm_share_inv
+//    val cod_fg_cadmediaset = 0
+//    val cod_fg_campemimediaset = 0
+//    val cod_fg_anuncmediaset = 1
+//    val cod_fg_prodmediaset = 0
+//    val cod_fg_grupomediaset = 0
+//    val importe_pase = 2D
+//    val grps_20 = 10D
+//
+//    assertEquals(10D,  Inversion.FN_costebase(
+//      costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
+//      cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
+//      cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
+//  }
+//
+//  @Test
+//  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 1
+//  def FN_costebase_t3(): Unit = {
+//
+//    // Broadcasts
+//    val costebase_marca = 2D
+//    val costebase_anunc = 10D
+//    val costebase_producto = 15D
+//    val costebase_grupo = 1D
+//    // Falta uno
+//
+//    // fctm_share_inv
+//    val cod_fg_cadmediaset = 0
+//    val cod_fg_campemimediaset = 0
+//    val cod_fg_anuncmediaset = 0
+//    val cod_fg_prodmediaset = 1
+//    val cod_fg_grupomediaset = 0
+//    val importe_pase = 2D
+//    val grps_20 = 10D
+//
+//    assertEquals(15D,  Inversion.FN_costebase(
+//      costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
+//      cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
+//      cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
+//  }
+//
+//  @Test
+//  // cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 0 && cod_fg_grupomediaset == 1
+//  def FN_costebase_t4(): Unit = {
+//
+//    // Broadcasts
+//    val costebase_marca = 2D
+//    val costebase_anunc = 10D
+//    val costebase_producto = 15D
+//    val costebase_grupo = 1D
+//    // Falta uno
+//
+//    // fctm_share_inv
+//    val cod_fg_cadmediaset = 0
+//    val cod_fg_campemimediaset = 0
+//    val cod_fg_anuncmediaset = 0
+//    val cod_fg_prodmediaset = 0
+//    val cod_fg_grupomediaset = 1
+//    val importe_pase = 2D
+//    val grps_20 = 10D
+//
+//    assertEquals(1D,  Inversion.FN_costebase(
+//      costebase_marca, costebase_anunc, costebase_producto, costebase_grupo,
+//      cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset,
+//      cod_fg_prodmediaset, cod_fg_grupomediaset, importe_pase, grps_20), 0.0)
+//  }
+//
 
   // ------------------------------------------------------------------------------------------------------
 //
