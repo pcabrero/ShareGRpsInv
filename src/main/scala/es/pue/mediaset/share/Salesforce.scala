@@ -331,7 +331,7 @@ class Salesforce {
       .withColumn("COD_EVENTO", col("COD_EVENTO").cast(LongType))
       .withColumn("ACTIVO", col("ACTIVO").cast(StringType))
       .withColumn("DES_EVENTO", col("DES_EVENTO").cast(StringType))
-      .withColumn("INDICE_", col("INDICE").cast(DoubleType))
+      .withColumn("INDICE", col("INDICE").cast(DoubleType))
       .withColumn("fecha_ini", from_utc_timestamp(unix_timestamp(col("fecha_ini"), "yyyy-MM-dd").cast(TimestampType), timezone))
       .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
   }

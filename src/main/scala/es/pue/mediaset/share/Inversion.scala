@@ -377,14 +377,12 @@ object Inversion {
     // Columna coef_evento
 
     val coef_evento_calc = spark.sql(
-      s"""
-         |SELECT $fctd_share_grps.cod_eventos, cat_eventos.indice
-         |FROM ${fctd_share_grps.getDBTable}
-         |LEFT JOIN cat_eventos
-         |ON $fctd_share_grps.cod_eventos = cat_eventos.cod_evento
-       """.stripMargin).collect().map(x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+      s"""SELECT DISTINCT $fctd_share_grps.cod_eventos, $cat_eventos.indice
+         |FROM ${fctd_share_grps.getDBTable}, $cat_eventos
+         |WHERE $fctd_share_grps.cod_eventos = $cat_eventos.cod_evento AND $fctd_share_grps.cod_eventos IS NOT NULL
+         |AND $cat_eventos.cod_evento IS NOT NULL""".stripMargin).collect().map(x => x(0).asInstanceOf[java.lang.Long] -> x(1).asInstanceOf[java.lang.Double]).toMap
 
-    val BC_coef_evento_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_evento_calc)
+    val BC_coef_evento_calc: Broadcast[Map[java.lang.Long, java.lang.Double]] = spark.sparkContext.broadcast(coef_evento_calc)
 
     /************************************************************************************************************/
 
@@ -923,18 +921,18 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_coef_evento( originDF: DataFrame, BC_coef_evento_calc: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_coef_evento( originDF: DataFrame, BC_coef_evento_calc: Broadcast[Map[java.lang.Long, java.lang.Double]]): DataFrame = {
 
     originDF.withColumn("coef_evento", UDF_coef_evento(BC_coef_evento_calc)(col("cod_eventos")))
 
   }
 
-  def UDF_coef_evento(BC_coef_evento_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
+  def UDF_coef_evento(BC_coef_evento_calc: Broadcast[Map[java.lang.Long, java.lang.Double]]): UserDefinedFunction = {
 
-    udf[Double, Long](cod_eventos => FN_coef_evento(BC_coef_evento_calc.value, cod_eventos))
+    udf[java.lang.Double, java.lang.Long](cod_eventos => FN_coef_evento(BC_coef_evento_calc.value, cod_eventos))
   }
 
-  def FN_coef_evento(coefEvento_calc: Map[Long, Double], cod_eventos: Long): Double = {
+  def FN_coef_evento(coefEvento_calc: Map[java.lang.Long, java.lang.Double], cod_eventos: java.lang.Long): java.lang.Double = {
 
     coefEvento_calc.getOrElse(cod_eventos, 1D)
   }
