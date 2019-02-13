@@ -542,8 +542,11 @@ object Inversion {
 
     val fctd_share_inv_col_24: DataFrame = getColumn_inv_pre(spark, fctd_share_inv_col_23)
     registerTemporalTable(fctd_share_inv_col_24, s"$fctm_share_inv")
-    createTable_tb_inv_agregada(spark)
+    // TODO debug
+    //    createTable_tb_inv_agregada(spark)
 
+    // TODO debug
+    /*
     val coef_corrector_DF : DataFrame = spark.sql(
       s"""
          |SELECT CAST($dim_agrup_cadenas.cod_cadena AS BIGINT) as cod_cadena1, $tb_inv_agregada.coef_corrector, CAST(CONCAT($tb_inv_agregada.anho, $tb_inv_agregada.mes) AS BIGINT) AS aniomes1
@@ -559,8 +562,9 @@ object Inversion {
     val fctd_share_inv_col_25: DataFrame = joinDF.drop("cod_cadena1","aniomes1")
 
     val fctd_share_inv_col_26: DataFrame = getColumn_inv_final(fctd_share_inv_col_25)
+    */
 
-    val result = fctd_share_inv_col_26
+    val result = fctd_share_inv_col_24
 
     registerTemporalTable(result, s"$fctm_share_inv")
 
