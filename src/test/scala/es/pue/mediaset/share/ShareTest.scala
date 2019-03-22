@@ -420,10 +420,11 @@ class ShareTest {
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
     val cod_cadena = 999L
+    val cod_programa = 0L
 
     assertEquals(0, Share.FN_cod_identif_franja(
       List(),
-      fecha_dia, Conf_cod_campana, Conf_cod_anunciante_pe, Conf_cod_anunciante_kantar, cod_cadena))
+      fecha_dia, cod_programa, cod_cadena))
 
   }
 
@@ -435,7 +436,7 @@ class ShareTest {
     val Conf_cod_accion = 123L
     val Conf_cod_anunciante_kantar = 0L
     val Conf_cod_anunciante_pe = 0L
-    val Conf_cod_cadena = 0L
+    val Conf_cod_cadena = 999L
     val Conf_cod_campana = 0L
     val Conf_cod_tipologia = 0L
     val Conf_cod_programa = 0L
@@ -455,7 +456,9 @@ class ShareTest {
     val cod_anuncio = 0L
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
+    val cod_programa = 0L
     val cod_cadena = 999L
+
 
     assertEquals(123L, Share.FN_cod_identif_franja(
       List(
@@ -463,7 +466,7 @@ class ShareTest {
           Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
           Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
       ),
-      fecha_dia, Conf_cod_campana, Conf_cod_anunciante_pe, Conf_cod_anunciante_kantar, cod_cadena))
+      fecha_dia, cod_programa, cod_cadena))
 
   }
 
@@ -496,6 +499,7 @@ class ShareTest {
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
     val cod_cadena = 999L
+    val cod_programa = 0L
 
     val param_cod_campana = 1L
     val param_cod_anunciante_pe = 1L
@@ -507,7 +511,7 @@ class ShareTest {
           Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
           Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
       ),
-      fecha_dia, param_cod_campana, param_cod_anunciante_pe, param_cod_anunciante_kantar, cod_cadena))
+      fecha_dia, cod_programa, cod_cadena))
 
   }
 
@@ -540,6 +544,7 @@ class ShareTest {
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
     val cod_cadena = 999L
+    val cod_programa = 0L
 
     val param_cod_campana = 1L
     val param_cod_anunciante_pe = 1L
@@ -551,7 +556,7 @@ class ShareTest {
           Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
           Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
       ),
-      fecha_dia, param_cod_campana, param_cod_anunciante_pe, param_cod_anunciante_kantar, cod_cadena))
+      fecha_dia, cod_programa, cod_cadena))
 
   }
 
@@ -585,12 +590,14 @@ class ShareTest {
     val cod_anuncio = 0L
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
+    val cod_cadena = 999L
+    val cod_programa = 0L
     val nom_cadena = "nom_cadena"
 
     assertEquals("Si la lista Configuraciones está vacia debe devolver el valor por defecto que será una cadena vacia",
       "", Share.FN_nom_identif_franja(
       List(),
-      fecha_dia, Conf_cod_campana, Conf_cod_anunciante_pe, Conf_cod_anunciante_kantar, nom_cadena))
+      fecha_dia, cod_programa, cod_cadena, nom_cadena))
 
   }
 
@@ -622,6 +629,8 @@ class ShareTest {
     val cod_anuncio = 0L
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
+    val cod_cadena = 0L
+    val cod_programa = 0L
     val nom_cadena = "nom_cadena"
 
     assertEquals("NO ES FILTRAR", Share.FN_nom_identif_franja(
@@ -630,8 +639,7 @@ class ShareTest {
           Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
           Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
       ),
-      fecha_dia, Conf_cod_campana, Conf_cod_anunciante_pe, Conf_cod_anunciante_kantar, nom_cadena))
-
+      fecha_dia, cod_programa, cod_cadena, nom_cadena))
   }
 
   @Test
@@ -663,6 +671,8 @@ class ShareTest {
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
     val nom_cadena = "nom_cadena"
+    val cod_cadena = 999L
+    val cod_programa = 999L
 
     val param_cod_campana = 1L
     val param_cod_anunciante_pe = 1L
@@ -675,7 +685,7 @@ class ShareTest {
           Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
           Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
       ),
-      fecha_dia, param_cod_campana, param_cod_anunciante_pe, param_cod_anunciante_kantar, nom_cadena))
+      fecha_dia, cod_programa, cod_cadena, nom_cadena))
 
   }
 
@@ -708,6 +718,8 @@ class ShareTest {
     val cod_anunc = 0L
     val cod_anunciante_subsidiario = 0L
     val nom_cadena = "nom_cadena"
+    val cod_cadena = 999L
+    val cod_programa = 0L
 
     val param_cod_campana = 1L
     val param_cod_anunciante_pe = 1L
@@ -719,11 +731,41 @@ class ShareTest {
           Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
           Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
       ),
-      fecha_dia, param_cod_campana, param_cod_anunciante_pe, param_cod_anunciante_kantar, nom_cadena))
+      fecha_dia, cod_programa, cod_cadena, nom_cadena))
 
   }
 
   //*****************************************************************************************
+
+
+  @Test
+  //cod_posicion_pb2 match posiciones preferentes
+  def FN_cod_fg_posicionado_t1(): Unit = {
+
+    // Configuraciones
+    val cod_posicion_pb2:Long = 997L
+    val list_posiciones_preferentes = Array(1L,2L,3L,997L,998L,999L)
+
+
+
+    assertEquals(1, Share.FN_cod_fg_posicionado(cod_posicion_pb2))
+
+  }
+
+  @Test
+  //cod_posicion_pb2 doesnt match posiciones preferentes
+  def FN_cod_fg_posicionado_t2(): Unit = {
+
+    // Configuraciones
+    val cod_posicion_pb2:java.lang.Long = 2000L
+
+    assertEquals(0, Share.FN_cod_fg_posicionado(cod_posicion_pb2))
+
+  }
+
+  //*****************************************************************************************
+
+
 // <<<<<<< mediaset_inversion
 //
 //  @Test

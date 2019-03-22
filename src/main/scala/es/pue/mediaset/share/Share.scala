@@ -169,11 +169,14 @@ object Share {
     val BC_codigos_de_cadenas_forta: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_forta)
 
 
+    val share_grps_cols_modif1 = FN_nom_sus_nomAnunc(share_grps_cols_inicial)
+    val share_grps_cols_modif2 = FN_cod_sus_codAnunc(share_grps_cols_modif1)
+
     /************************************************************************************************************/
     //  Calculo de nuevas columnas
 
 
-    val share_grps_cols_1: DataFrame = getColumn_cod_tp_lineanegocio_km(share_grps_cols_inicial, BC_dim_linea_negocio_list)
+    val share_grps_cols_1: DataFrame = getColumn_cod_tp_lineanegocio_km(share_grps_cols_modif2, BC_dim_linea_negocio_list)
     val share_grps_cols_1_nom: DataFrame = getColumn_nom_tp_lineanegocio_km(share_grps_cols_1, BC_dim_linea_negocio_list)
 
     /************************************************************************************************************/
@@ -232,7 +235,10 @@ object Share {
 
     /************************************************************************************************************/
 
-    val share_grps_current_timestamp: DataFrame = setCurrentTimeStamp(share_grps_cols_18_nom, timezone)
+    val share_grps_cols_19: DataFrame = getColumn_cod_fg_posicionado(share_grps_cols_18_nom)
+
+
+    val share_grps_current_timestamp: DataFrame = setCurrentTimeStamp(share_grps_cols_19, timezone)
 
     val result = share_grps_current_timestamp
 
@@ -415,6 +421,23 @@ object Share {
     result
   }
 
+  def FN_nom_sus_nomAnunc(originDF: DataFrame): DataFrame = {
+
+    originDF.withColumn("nom_anunc", when(col("nom_anunc") === "SIN ESPECIFICAR", col("nom_anunciante_subsidiario"))
+      .otherwise(col("nom_anunc"))
+    )
+
+  }
+
+  def FN_cod_sus_codAnunc(originDF: DataFrame): DataFrame = {
+
+    originDF.withColumn("cod_anunc", when(col("cod_anunc") === 9999999999L , col("cod_anunciante_subsidiario"))
+      .otherwise(col("cod_anunc"))
+    )
+
+  }
+
+
   // Funciones para calcular y añadir a la tabla las columnas: COD_TP_COMPUTO_KM Y NOM_TP_COMPUTO_KM --------------------------------------------------------------------------------------------------------------------------------------------
   def getColumn_nom_tp_computo_km(originDF : DataFrame, BC_lineaNegocioList: Broadcast[List[LineaNegocio]], BC_param_tipologias_duracion: Broadcast[Array[Int]], BC_param_duracion_iiee:  Broadcast[Int]): DataFrame = {
 
@@ -453,6 +476,29 @@ object Share {
 
     result
   }
+
+  def getColumn_cod_fg_posicionado(originDF : DataFrame): DataFrame = {
+    originDF.withColumn("cod_fg_posicionado", UDF_cod_fg_posicionado()(col("cod_posicion_pb2")))
+  }
+
+  def UDF_cod_fg_posicionado(): UserDefinedFunction = {
+
+    udf[Long, Long]( cod_posicion_pb2 => FN_cod_fg_posicionado(cod_posicion_pb2))
+  }
+
+
+  def FN_cod_fg_posicionado(cod_posicion_pb2: Long): Long ={
+
+    var result = 0L
+    val posicionados : Set[Long] = Set(1,2,3,997,998,999)
+
+    if (posicionados.contains(cod_posicion_pb2)){
+      result = 1L
+    }
+    result
+
+  }
+
 
   def getColumn_cod_tp_computo_km(originDF : DataFrame, BC_lineaNegocioList: Broadcast[List[LineaNegocio]], BC_param_tipologias_duracion: Broadcast[Array[Int]], BC_param_duracion_iiee:  Broadcast[Int]  ): DataFrame = {
 
@@ -564,36 +610,21 @@ object Share {
   // Funciones para calcular y añadir a la tabla las columnas: COD_IDENTIF_FRANJA Y NOM_IDENTIF_FRANJA --------------------------------------------------------------------------------------------------------------------------------------------
 
   def getColumn_cod_identif_franja(originDF : DataFrame, BC_configuraciones_list: Broadcast[List[Configuraciones]]): DataFrame = {
-
     originDF.withColumn("cod_identif_franja", UDF_cod_identif_franja(BC_configuraciones_list)(col("fecha_dia").cast(LongType),
-      col("cod_anuncio"),col("cod_anunc"), col("cod_anunciante_subsidiario"),
-      col("cod_cadena")))
+      col("cod_programa"), col("cod_cadena")))
   }
-
   def UDF_cod_identif_franja(BC_configuraciones_list: Broadcast[List[Configuraciones]]): UserDefinedFunction = {
-
-    udf[Long, Long, Long, Long, Long, Long]((fecha_dia, cod_anuncio, cod_anunc, cod_anunciante_subsidiario, cod_cadena) => FN_cod_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_anuncio, cod_anunc, cod_anunciante_subsidiario, cod_cadena ))
-
+    udf[Long, Long, Long, Long]((fecha_dia, cod_programa, cod_cadena) => FN_cod_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_programa, cod_cadena ))
   }
-
-  def FN_cod_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: Long, cod_anuncio: Long,  cod_anunc: Long,
-                            cod_anunciante_subsidiario: Long, cod_cadena: Long): Long = {
-
+  def FN_cod_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: Long, cod_programa: Long, cod_cadena: Long): Long = {
     var result = 0L
-
     for(elem <- configuraciones_list){
       if(elem.des_accion != "Filtrar") {
-
-        if ( ((elem.cod_campana == cod_anuncio && elem.cod_anunciante_pe == cod_anunc)
-          || (elem.cod_anunciante_kantar == cod_anunciante_subsidiario))
+        if ( (elem.cod_cadena == cod_cadena && elem.cod_programa == cod_programa)
           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)) {
-
           result = elem.cod_accion
-
         } else {
-
           result = cod_cadena
-
         }
       }
     }
@@ -601,36 +632,23 @@ object Share {
   }
 
   def getColumn_nom_identif_franja(originDF : DataFrame, BC_configuraciones_list: Broadcast[List[Configuraciones]]): DataFrame = {
-
     originDF.withColumn("nom_identif_franja", UDF_nom_identif_franja(BC_configuraciones_list)(col("fecha_dia").cast(LongType),
-      col("cod_anuncio"),col("cod_anunc"), col("cod_anunciante_subsidiario"),
-      col("nom_cadena")))
+      col("cod_programa"),col("cod_cadena"),col("nom_cadena")))
   }
 
   def UDF_nom_identif_franja(BC_configuraciones_list: Broadcast[List[Configuraciones]]): UserDefinedFunction = {
-
-    udf[String, Long, Long, Long, Long, String]((fecha_dia, cod_anuncio, cod_anunc, cod_anunciante_subsidiario, nom_cadena) => FN_nom_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_anuncio, cod_anunc, cod_anunciante_subsidiario, nom_cadena ))
-
+    udf[String, Long, Long, Long, String]((fecha_dia, cod_programa, cod_cadena, nom_cadena) => FN_nom_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_programa, cod_cadena, nom_cadena ))
   }
 
-  def FN_nom_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: Long, cod_anuncio: Long,  cod_anunc: Long,
-                            cod_anunciante_subsidiario: Long, nom_cadena: String): String = {
-
+  def FN_nom_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: Long,cod_programa: Long, cod_cadena: Long, nom_cadena: String): String = {
     var result = ""
-
     for(elem <- configuraciones_list){
       if(elem.des_accion != "Filtrar") {
-
-        if ( ((elem.cod_campana == cod_anuncio && elem.cod_anunciante_pe == cod_anunc)
-          || (elem.cod_anunciante_kantar == cod_anunciante_subsidiario))
+        if ( (elem.cod_cadena == cod_cadena && elem.cod_programa == cod_programa)
           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)) {
-
           result = elem.des_accion
-
         } else {
-
           result = nom_cadena
-
         }
       }
     }
@@ -878,6 +896,11 @@ object Share {
     result
   }
 
+
+
+
+
+
   // Funciones para calcular y añadir a la tabla las columnas: cod_fg_evento, nom_fg_evento  --------------------------------------------------------------------------------------------------------------------------------------------
 
   def getColumn_cod_eventos(originDF : DataFrame, BC_eventos_list: Broadcast[List[Eventos]]): DataFrame = {
@@ -968,6 +991,15 @@ object Share {
     result
   }
 
+
+
+
+
+
+
+
+
+
   /************************************************************************************************************/
 
   // Case class con las diferentes tablas que se recuperan de SalesForce. Se especifican sus columnas y sus tipos de datos.
@@ -1057,6 +1089,8 @@ object Share {
       NOM_POSICION_PB3,
       COD_CUALITATIVO,
       NOM_CUALITATIVO,
+      COD_CUALITATIVO_PE,
+      NOM_CUALITATIVO_PE,
       COD_EJECUTIVO,
       NOM_EJECUTIVO,
       COD_SUBDIVISION,
@@ -1079,6 +1113,8 @@ object Share {
       NOM_HOLDING,
       COD_CENTRAL,
       NOM_CENTRAL,
+      COD_GRUPO_CENT,
+      NOM_GRUPO_CENT,
       COD_MARCA_H,
       NOM_MARCA_H,
       COD_ANUNC_H,
@@ -1108,7 +1144,9 @@ object Share {
       GRPS_TIMESHIFT,
       GRPS_20_TIMESHIFT,
       GRPS_TIMESHIFT_INV,
-      GRPS_20_TIMESHIFT_INV
+      GRPS_20_TIMESHIFT_INV,
+      GRPS_TOTALES,
+      GRPS_20_TOTALES
         FROM ${fcts_mercado_lineal.getDBTable}
         WHERE nom_sect_geog != "PBC"
           AND cod_target IN (5, 3, 2)
@@ -1164,6 +1202,8 @@ object Share {
                                NOM_POSICION_PB3,
                                COD_CUALITATIVO,
                                NOM_CUALITATIVO,
+                               COD_CUALITATIVO_PE,
+                               NOM_CUALITATIVO_PE,
                                COD_EJECUTIVO,
                                NOM_EJECUTIVO,
                                COD_SUBDIVISION,
@@ -1186,6 +1226,8 @@ object Share {
                                NOM_HOLDING,
                                COD_CENTRAL,
                                NOM_CENTRAL,
+                               COD_GRUPO_CENT,
+                               NOM_GRUPO_CENT,
                                COD_MARCA_H,
                                NOM_MARCA_H,
                                COD_ANUNC_H,
@@ -1214,7 +1256,10 @@ object Share {
                                SUM(GRPS_TIMESHIFT) AS GRPS_TIMESHIFT,
                                SUM(GRPS_20_TIMESHIFT) AS GRPS_20_TIMESHIFT,
                                SUM(GRPS_TIMESHIFT_INV) AS GRPS_TIMESHIFT_INV,
-                               SUM(GRPS_20_TIMESHIFT_INV) AS GRPS_20_TIMESHIFT_INV
+                               SUM(GRPS_20_TIMESHIFT_INV) AS GRPS_20_TIMESHIFT_INV,
+                               SUM(GRPS_TOTALES) AS GRPS_TOTALES,
+                               SUM(GRPS_20_TOTALES) AS GRPS_20_TOTALES
+
                              FROM tmp_fcts_fecha_dia
                              GROUP BY
                                fecha_dia,
@@ -1294,7 +1339,11 @@ object Share {
                                COD_FG_AUTOPROMO,
                                NOM_FG_AUTOPROMO,
                                NOM_PROGRAMA,
-                               COD_PROGRAMA
+                               COD_PROGRAMA,
+                               COD_GRUPO_CENT,
+                               NOM_GRUPO_CENT,
+                               COD_CUALITATIVO_PE,
+                               NOM_CUALITATIVO_PE
                              """)
   }
 

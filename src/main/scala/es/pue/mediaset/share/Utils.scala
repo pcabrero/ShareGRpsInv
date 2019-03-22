@@ -30,6 +30,7 @@ class Utils {
     sdf_yyyymmdd.format(Calendar.getInstance(tz).getTime)
   }
 
+
   // TODO create method to validate date from string
   /**
     * Recuperar la fecha actual en formato yyyyMMdd
