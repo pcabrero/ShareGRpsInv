@@ -367,6 +367,5 @@ class Salesforce {
       .withColumn("fecha_fin", from_utc_timestamp(unix_timestamp(col("fecha_fin"), "yyyy-MM-dd").cast(TimestampType), timezone))
 
   }
-
 }
 

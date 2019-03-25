@@ -45,6 +45,8 @@ object Inversion {
   private var rel_camp_trgt_may : Entity = _
   private var fcts_mercado_lineal : Entity = _
   private var ordenado : Entity = _
+  private var dim_conf_canales : Entity = _
+
 
   // Tablas Salesforce
   private var dim_agrup_cadenas : Entity = _    // Esta entidad también se persiste como tabla
@@ -129,6 +131,9 @@ object Inversion {
     val tb_inversion_agregada_DF: DataFrame = salesforce.get_tb_inversion_agregada(spark, salesforce.query_inversionagregada)
     registerTemporalTable(tb_inversion_agregada_DF, s"$tb_inversion_agregada")
 
+    //val dim_conf_canales_DF: DataFrame = salesforce.get_tb_dim_conf_canales(spark, salesforce.query_dim_conf_canales)
+    //registerTemporalTable(dim_conf_canales_DF, s"$dim_conf_canales")
+
     /************************************************************************************************************/
 
     // Collecting data from SF
@@ -139,9 +144,9 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val por_pt_mediaset_calc: Map[Long, Double] = spark.sql(
-      s"""SELECT in_pt.aniomes,in_mediaset.cod_cadena, (in_pt.sum_campana_grps_in_pt / in_mediaset.sum_campana_grps_in_mediaset) AS por_pt_mediaset
-         |FROM (SELECT aniomes, cod_anuncio, cod_anunciante, cod_cadena, SUM(grps_20_totales) AS sum_campana_grps_in_pt FROM ${fctd_share_grps.getDBTable} WHERE des_day_part = "PT"
+    val por_pt_mediaset_calc: Map[(Long,Long,Long,Long), Double] = spark.sql(
+      s"""SELECT in_pt.aniomes, in_pt.cod_anuncio, in_pt.cod_anunc, in_pt.cod_cadena, (in_pt.sum_campana_grps_in_pt / in_mediaset.sum_campana_grps_in_mediaset) AS por_pt_mediaset
+         |FROM (SELECT aniomes, cod_anuncio, cod_anunc, cod_cadena, SUM(grps_20_totales) AS sum_campana_grps_in_pt FROM ${fctd_share_grps.getDBTable} WHERE des_day_part = "PT"
          | AND $fctd_share_grps.cod_cadena IN (SELECT $dim_agrup_cadenas.cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE
          | cod_grupo_n1 = 20001)
          | AND cod_day_part = 1
@@ -150,7 +155,7 @@ object Inversion {
          | AND cod_target_compra = cod_target
          | GROUP BY aniomes,cod_cadena) AS in_pt
          | JOIN
-         | (SELECT aniomes, cod_anuncio, cod_anunciante, $fctd_share_grps.cod_cadena AS cod_cadena, SUM($fctd_share_grps.grps_20_totales) AS sum_campana_grps_in_mediaset
+         | (SELECT aniomes, cod_anuncio, cod_anunc, $fctd_share_grps.cod_cadena AS cod_cadena, SUM($fctd_share_grps.grps_20_totales) AS sum_campana_grps_in_mediaset
          | FROM ${fctd_share_grps.getDBTable} WHERE $fctd_share_grps.cod_cadena IN (SELECT $dim_agrup_cadenas.cod_cadena FROM
          | ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n1 = 20001)
          | AND $fctd_share_grps.nom_sect_geog = "PYB"
@@ -159,14 +164,14 @@ object Inversion {
          | GROUP BY $fctd_share_grps.cod_cadena) AS in_mediaset
          | ON in_pt.cod_cadena = in_mediaset.cod_cadena
          | AND in_pt.aniomes = in_mediaset.aniomes
-       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Long]) -> x(4).asInstanceOf[Double]).toMap
 
-    val BC_por_pt_mediaset_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(por_pt_mediaset_calc)
+    val BC_por_pt_mediaset_calc: Broadcast[Map[(Long,Long,Long,Long), Double]] = spark.sparkContext.broadcast(por_pt_mediaset_calc)
 
     /************************************************************************************************************/
 
-    val por_cualmediaset_calc: Map[Long, Double] = spark.sql(
-      s"""SELECT a.cod_cadena,a.fechadia,a.cod_grupo_n1,a.fecha_ini,a.fecha_fin,b.grps_20_totales,(a.grps_20_totales/b.grps_20_totales) AS POR_cual_mediaset
+    val por_cualmediaset_calc: Map[(Long,Long,Long,Double), Double] = spark.sql(
+      s"""SELECT a.cod_cadena,a.fecha_dia,a.cod_grupo_n1,b.grps_20_totales,(a.grps_20_totales/b.grps_20_totales) AS POR_cual_mediaset
          |FROM
          |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
          |SUM(grps_20_totales) AS grps_20_totales
@@ -181,7 +186,7 @@ object Inversion {
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia,$dim_agrup_cadenas.fecha_ini,$dim_agrup_cadenas.fecha_fin)
          |AS a
          |
-         |(SELECT $fctd_share_grps.cod_cadena,$fctd_share_grps.fechadia,$fctd_share_grps.cod_grupo_n1,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin,
+         |(SELECT $fctd_share_grps.cod_cadena,$fctd_share_grps.fecha_dia,$fctd_share_grps.cod_grupo_n1,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin,
          |SUM(grps_20_totales) AS sum_grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          | WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
@@ -191,37 +196,43 @@ object Inversion {
          |AND  $fctd_share_grps.cod_target_compra =  $fctd_share_grps.cod_target
          |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2) AS b
-       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
 
-    val BC_por_cualmediaset_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(por_cualmediaset_calc)
+    val BC_por_cualmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]] = spark.sparkContext.broadcast(por_cualmediaset_calc)
 
     /************************************************************************************************************/
 
-    val por_pt_grupocadena_calc: Map[Long, Double] = spark.sql(
-      s"""SELECT DISTINCT a.cod_cadena, (a.grps_20_totales / b.sum_grps_20_totales) AS por_pt_grupocadena FROM
+    val por_pt_grupocadena_calc: Map[(Long,Long,Long,Long), Double] = spark.sql(
+      s"""SELECT DISTINCT a.cod_cadena, a.aniomes,a.cod_grupo_n1,a.cod_anuncio,(a.grps_20_totales / b.sum_grps_20_totales) AS por_pt_grupocadena FROM
          |(SELECT $fctd_share_grps.cod_cadena, sum(grps_20_totales) as grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
          |AND $fctd_share_grps.cod_day_part = 1
+         |AND $fctd_share_grps.nom_sect_geo = "PYB"
+         |AND $fctd_share_grps.cod_fg_filtrado = 0
+         |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
          |AND $fctd_share_grps.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
-         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini,
+         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini,
          |$dim_agrup_cadenas.fecha_fin) AS a
          |JOIN
          |(SELECT $fctd_share_grps.cod_cadena, sum(grps_20_totales) AS sum_grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
+         |AND $fctd_share_grps.nom_sect_geo = "PYB"
+         |AND $fctd_share_grps.cod_fg_filtrado = 0
+         |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
          |AND $fctd_share_grps.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
-         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini,
+         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini,
          |$dim_agrup_cadenas.fecha_fin) AS b
          |ON (a.cod_cadena = b.cod_cadena)
-       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Long]) -> x(4).asInstanceOf[Double]).toMap
 
-    val BC_por_pt_grupocadena_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(por_pt_grupocadena_calc)
+    val BC_por_pt_grupocadena_calc: Broadcast[Map[(Long,Long,Long,Long), Double]] = spark.sparkContext.broadcast(por_pt_grupocadena_calc)
 
     /************************************************************************************************************/
 
-    val por_cualgrupocadena_calc: Map[Long, Double] = spark.sql(
-      s"""SELECT a.cod_cadena,a.fechadia,a.cod_grupo_n2,a.fecha_ini,a.fecha_fin,b.grps_20_totales,(a.grps_20_totales/b.grps_20_totales) AS POR_cual_grupoN2
+    val por_cualgrupocadena_calc: Map[(Long,Long,Long,Double), Double] = spark.sql(
+      s"""SELECT a.cod_cadena,a.fecha_dia,a.cod_grupo_n2,b.grps_20_totales,(a.grps_20_totales/b.grps_20_totales) AS POR_cual_grupoN2
          |FROM
          |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
          |SUM(grps_20_totales) AS grps_20_totales
@@ -233,7 +244,7 @@ object Inversion {
          |AND  $fctd_share_grps.fecha_dia BETWEEN ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2,$fctd_share_grps.fecha_dia,$dim_agrup_cadenas.fecha_ini,$dim_agrup_cadenas.fecha_fin)
          |AS a
-         |(SELECT $fctd_share_grps.cod_cadena,$fctd_share_grps.fechadia,$fctd_share_grps.cod_grupo_n2,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin,
+         |(SELECT $fctd_share_grps.cod_cadena,$fctd_share_grps.fecha_dia,$fctd_share_grps.cod_grupo_n2,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin,
          |SUM(grps_20_totales) AS sum_grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          | WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
@@ -242,25 +253,26 @@ object Inversion {
          |AND  $fctd_share_grps.cod_fg_filtrado = 0
          |AND  $fctd_share_grps.cod_target_compra =  $fctd_share_grps.cod_target
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2) AS b
-       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
 
-    val BC_por_cualgrupocadena_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(por_cualgrupocadena_calc)
+    val BC_por_cualgrupocadena_calc: Broadcast[Map[(Long,Long,Long,Double), Double]] = spark.sparkContext.broadcast(por_cualgrupocadena_calc)
 
     /************************************************************************************************************/
 
     val cuota_por_grupo_calc: Map[Long, Double] = spark.sql(
-      s"""SELECT a.cod_cadena, (a.grps_20_totales / b.sum_grps_20_totales) AS cuota
+      s"""SELECT a.aniomes,a.cod_grupo_n1,a.fecha_dia,a.fecha_ini,a.fecha_fin,(a.grps_20_totales / b.sum_grps_20_totales) AS cuota
          |FROM
-         |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
+         |(SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
          |SUM(grps_20_totales) AS grps_20_totales FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable} WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
          |AND $fctd_share_grps.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
-         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin) AS a
+         |GROUP BY $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin) AS a
          |JOIN
-         |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n0, SUM(grps_20_totales) AS sum_grps_20_totales FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
+         |(SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n0, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,  SUM(grps_20_totales) AS sum_grps_20_totales FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
-         |AND $dim_agrup_cadenas.des_grupo_n0 = "TTV"
+         |AND $dim_agrup_cadenas.cod_grupo_n0 = 10001
+         |AND $fctd_share_grps.cod_sect_geog = "PYB"
          |AND $fctd_share_grps.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
-         |GROUP BY $fctd_share_grps.cod_cadena,
+         |GROUP BY $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes
          |$dim_agrup_cadenas.cod_grupo_n0) AS b
          |ON (a.cod_cadena = b.cod_cadena)
        """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
@@ -274,7 +286,7 @@ object Inversion {
            """.stripMargin).map(x => x.getInt(0).toLong).collect.toSet
     */
     val cadenas_mediaset_grupo_n1: Set[Long] = spark.sql(
-      s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n1 = 20001 AND cod_cadena IS NOT NULL AND $fctd_share_grps.aniomes >= CONCAT(YEAR(fecha_ini), MONTH(fecha_ini)) AND $fctd_share_grps.aniomes <= CONCAT(YEAR(fecha_fin), MONTH(fecha_fin))
+      s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable}  WHERE cod_grupo_n1 = 20001 AND cod_cadena IS NOT NULL AND $fctd_share_grps.aniomes >= CONCAT(YEAR(fecha_ini), MONTH(fecha_ini)) AND $fctd_share_grps.aniomes <= CONCAT(YEAR(fecha_fin), MONTH(fecha_fin))
        """.stripMargin).map(x => x.getLong(0)).collect.toSet
 
     val BC_cadenas_mediaset_grupo_n1: Broadcast[Set[Long]] = spark.sparkContext.broadcast(cadenas_mediaset_grupo_n1)
@@ -307,48 +319,85 @@ object Inversion {
 
     /************************************************************************************************************/
 
+    val importe_pase: Map[(Long,String,Long,Long,Long,Long,Long,Double), Double] = spark.sql(
+      s"""SELECT share.aniomes, share.nom_cadena, share.cod_target_compra, share.cod_anunc, share.cod_anunciante_subsidiario, share.cod_anuncio, share.cod_marca, share.grps, IF(sum(ord.importe_pase) IS NULL, 0, sum(ord.importe_pase)) importe
+         |FROM
+         |(SELECT sh.dia_progrmd,sh.aniomes, sh.nom_cadena, sh.cod_cadena, sh.cod_target_compra, sh.cod_anunc, sh.cod_anunciante_subsidiario, sh.cod_anuncio, sh.cod_marca, SUM(sh.grps_20_totales) grps
+         |from ${fctd_share_grps.getDBTable} AS sh
+         |where sh.nom_sect_geog in ("PYB")
+         |and sh.cod_fg_filtrado = 0
+         |and sh.cod_target=sh.cod_target_compra
+         |GROUP BY sh.dia_progrmd, sh.aniomes, sh.nom_Cadena, sh.cod_cadena, sh.cod_target_compra, sh.cod_anunc, sh.cod_anunciante_subsidiario, sh.cod_anuncio, sh.cod_marca
+         |) share
+         |left join
+         |(SELECT orden.dia_progrmd, orden.cod_marca, orden.nom_marca, orden.cod_anunc, orden.nom_anunc,orden.cod_grptarget_venta_gen, orden.nom_grptarget_venta_gen, orden.cod_canal,orden.nom_canal, orden.cod_conexion, orden.nom_conexion, orden.cod_anuncio, orden.nom_anuncio, orden.importe_pase, can.cod_cadena, can.nom_cadena
+         |FROM ${ordenado.getDBTable} orden left join ${dim_conf_canales.getDBTable} can
+         |on orden.cod_conexion = can.cod_conexion
+         |WHERE orden.cod_conexion <> 81
+         |AND fg_prod_placement <> 1
+         |AND cod_est_linea IN (2,3,4)) ord
+         |ON ord.cod_grptarget_venta_gen = share.cod_target_compra
+         |AND  share.cod_marca = ord.cod_marca
+         |AND  share.cod_anuncio = ord.cod_anuncio
+         |AND share.cod_anunc = ord.cod_anunc
+         |AND share.dia_progrmd = ord.dia_progrmd
+         |and ord.cod_cadena = share.cod_cadena
+         |group by share.aniomes, share.nom_cadena,share.cod_target_compra, share.cod_anunc, share.cod_anunciante_subsidiario, share.cod_anuncio, share.cod_marca, share.grps
+    """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[String],x(2).asInstanceOf[Long],x(3).asInstanceOf[Long],x(4).asInstanceOf[Long],x(5).asInstanceOf[Long],x(6).asInstanceOf[Long],x(7).asInstanceOf[Double]) -> x(8).asInstanceOf[Double]).toMap
+
+    val BC_importe_pase: Broadcast[Map[(Long,String,Long,Long,Long,Long,Long,Double), Double]] = spark.sparkContext.broadcast(importe_pase)
+
     /************************************************************************************************************/
 
-    val costebase_marca: Map[Long, Double] = spark.sql(
+    val costebase_marca: Map[(Long,Long), Double] = spark.sql(
       s"""SELECT $fctm_share_inv.mesanio, $fctm_share_inv.cod_anuncio, SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
          |FROM ${fctm_share_inv.getDBTable}, ${dim_agrup_cadenas.getDBTable} WHERE $fctm_share_inv.cod_cadena
-         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.con_nivel_n2 = 20001  GROUP BY $fctm_share_inv.mesanio, $fctd_share_grps.cod_anuncio
-           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.cod_grupo_n1 = 20001  GROUP BY $fctm_share_inv.mesanio, $fctd_share_grps.cod_anuncio
+           """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long]) -> x(2).asInstanceOf[Double]).toMap
 
-    val BC_costebase_marca: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_marca)
+    val BC_costebase_marca: Broadcast[Map[(Long,Long), Double]] = spark.sparkContext.broadcast(costebase_marca)
 
-    val costebase_anunc: Map[Long, Double] = spark.sql(
-      s"""SELECT $fctm_share_inv.mesanio, $fctd_share_grps.cod_anunc,$fctm_share_inv.cod_target_compra, SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
+    val costebase_anunc: Map[(Long,Long), Double] = spark.sql(
+      s"""SELECT $fctm_share_inv.mesanio, $fctd_share_grps.cod_anunc, SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
          |FROM ${fctm_share_inv.getDBTable}, ${dim_agrup_cadenas.getDBTable}  WHERE $fctm_share_inv.cod_cadena
-         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.con_nivel_n2 = 20001  GROUP BY $fctm_share_inv.mesanio, $fctd_share_grps.cod_anunc,$fctm_share_inv.cod_target_compra
-           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.cod_grupo_n1 = 20001  GROUP BY $fctm_share_inv.mesanio, $fctd_share_grps.cod_anunc,
+           """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long]) -> x(2).asInstanceOf[Double]).toMap
 
-    val BC_costebase_anunc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_anunc)
+    val BC_costebase_anunc: Broadcast[Map[(Long,Long), Double]] = spark.sparkContext.broadcast(costebase_anunc)
 
-    val costebase_producto: Map[Long, Double] = spark.sql(
-      s"""SELECT $fctm_share_inv.mesanio,$fctd_share_grps.cod_producto,$fctm_share_inv.cod_target_compra,SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
+    val costebase_producto: Map[(Long,Long), Double] = spark.sql(
+      s"""SELECT $fctm_share_inv.mesanio,$fctd_share_grps.cod_producto, SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
          |FROM ${fctm_share_inv.getDBTable}, ${dim_agrup_cadenas.getDBTable} WHERE $fctm_share_inv.cod_cadena
-         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.con_nivel_n2 = 20001 GROUP BY $fctm_share_inv.mesanio,$fctm_share_inv.cod_producto,$fctm_share_inv.cod_target_compra
-           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.cod_grupo_n1 = 20001 GROUP BY $fctm_share_inv.mesanio,$fctm_share_inv.cod_producto,
+           """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long]) -> x(2).asInstanceOf[Double]).toMap
 
-    val BC_costebase_producto: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_producto)
+    val BC_costebase_producto: Broadcast[Map[(Long,Long), Double]] = spark.sparkContext.broadcast(costebase_producto)
 
-    val costebase_grupo: Map[Long, Double] = spark.sql(
-      s"""SELECT $fctm_share_inv.mesanio,$fctm_share_inv.cod_grupo, $fctm_share_inv.cod_target_compra,SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
+    val costebase_grupo: Map[(Long,Long), Double] = spark.sql(
+      s"""SELECT $fctm_share_inv.mesanio,$fctm_share_inv.cod_grupo, SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
          |FROM ${fctm_share_inv.getDBTable}, ${dim_agrup_cadenas.getDBTable} WHERE $fctm_share_inv.cod_cadena
-         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.con_nivel_n2 = 20001 GROUP BY $fctm_share_inv.mesanio,$fctm_share_inv.cod_grupo,$fctm_share_inv.cod_target_compra
-           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.cod_grupo_n1 = 20001 GROUP BY $fctm_share_inv.mesanio,$fctm_share_inv.cod_grupo,
+           """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long]) -> x(2).asInstanceOf[Double]).toMap
 
-    val BC_costebase_grupo: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(costebase_grupo)
+    val BC_costebase_grupo: Broadcast[Map[(Long,Long), Double]] = spark.sparkContext.broadcast(costebase_grupo)
 
 
-    val costebase_else: Map[Long,Double] = spark.sql(
+    val costebase_else: Map[(Long,Long),Double] = spark.sql(
       s"""SELECT $fctm_share_inv.mesanio,$fctm_share_inv.cod_anuncio,SUM($fctm_share_inv.importe_pase) / SUM($fctm_share_inv.grps_20_totales)
          |FROM ${fctm_share_inv.getDBTable}, ${dim_agrup_cadenas.getDBTable} WHERE $fctm_share_inv.cod_cadena
-         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.con_nivel_n2 = 20001 GROUP BY $fctm_share_inv.mesanio,$fctm_share_inv.cod_anuncio
-           """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+         |= $dim_agrup_cadenas.cod_cadena AND $dim_agrup_cadenas.cod_grupo_n1 = 20001 GROUP BY $fctm_share_inv.mesanio,$fctm_share_inv.cod_anuncio
+           """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long]) -> x(2).asInstanceOf[Double]).toMap
 
-    val BC_costebase_else: Broadcast[Map[Long,Double]] = spark.sparkContext.broadcast(costebase_else)
+    val BC_costebase_else: Broadcast[Map[(Long,Long),Double]] = spark.sparkContext.broadcast(costebase_else)
+    /************************************************************************************************************/
+
+    val cod_cadena_disney: List[Long] = spark.sql(
+      s"""SELECT cod_cadena FROM ${dim_agrup_cadenas.getDBTable}
+         |WHERE cod_grupo_n1 = 20003
+       """.stripMargin).map(x => x.getLong(0)).collect.toList
+    val BC_cod_cadena_disney:Broadcast[List[Long]] = spark.sparkContext.broadcast(cod_cadena_disney)
+
+
     /************************************************************************************************************/
 
     val cod_posicion_pb2_in_posicionado: List[Long] = spark.sql(
@@ -360,15 +409,15 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val num_cadenas_forta_calc: List[(Long, Long)] = spark.sql(
+    val num_cadenas_forta_calc: Map[(Long,Long),Long] = spark.sql(
       s"""
          |SELECT aniomes, cod_anuncio, COUNT(DISTINCT cod_cadena) AS cads_forta
          |FROM ${fctd_share_grps.getDBTable}
          |WHERE cod_fg_forta = 1
          |GROUP BY aniomes, cod_anuncio
-       """.stripMargin).map(x => (x.getLong(0), x.getLong(1))).collect.toList
+       """.stripMargin).collect.map(x => (x(0).asInstanceOf[Long], x(1).asInstanceOf[Long]) -> x(2).asInstanceOf[Long]).toMap
 
-    val BC_num_cadenas_forta_calc: Broadcast[List[(Long, Long)]] = spark.sparkContext.broadcast(num_cadenas_forta_calc)
+    val BC_num_cadenas_forta_calc: Broadcast[Map[(Long,Long),Long]] = spark.sparkContext.broadcast(num_cadenas_forta_calc)
 
     /************************************************************************************************************/
 
@@ -399,16 +448,30 @@ object Inversion {
            """.stripMargin).collect().map( x => x(0).asInstanceOf[Int].toLong -> x(1).asInstanceOf[Double]).toMap
     */
 
-    // Columna Coef Cadena
-    val coef_cadena_calc: Map[Long, Double] = spark.sql(
+    val coef_cadena_calc_1: Map[Long, Double] = spark.sql(
       s"""
-         |SELECT $dim_agrup_cadenas.cod_cadena, tb_coeficientes.indice
-         |FROM tb_coeficientes, ${dim_agrup_cadenas.getDBTable}
-         |WHERE tb_coeficientes.des_cadena = $dim_agrup_cadenas.des_grupo_n2
+         |SELECT tb_coeficientes.cod_cadena, tb_coeficientes.indice
+         |FROM tb_coeficientes, $fctm_share_inv
          |AND tb_coeficientes.coeficiente = "CADENA_N2"
+         |AND tb_coeficientes.cod_cadena = 30006
+         |AND $fctm_share_inv.aniomes >= year(tb_coeficientes.fecha_ini)&mes(tb_coeficientes.fecha_ini)
+         |AND $fctm_share_inv.aniomes <= year(tb_coeficientes.fecha_ini)&mes(tb_coeficientes.fecha_ini)
        """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
-    val BC_coef_cadena_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_cadena_calc)
+    // Columna Coef Cadena
+    val coef_cadena_calc_2: Map[Long, Double] = spark.sql(
+      s"""
+         |SELECT $dim_agrup_cadenas.cod_cadena, tb_coeficientes.indice
+         |FROM tb_coeficientes, ${dim_agrup_cadenas.getDBTable}, $fctm_share_inv
+         |AND tb_coeficientes.coeficiente = "CADENA_N2"
+         |AND tb_coeficientes.cod_cadena <> 30006
+         |AND tb_coeficientes.cod_cadena = $dim_agrup_cadenas.cod_grupo_n2
+         |AND $fctm_share_inv.aniomes >= year(tb_coeficientes.fecha_ini)&mes(tb_coeficientes.fecha_ini)
+         |AND $fctm_share_inv.aniomes <= year(tb_coeficientes.fecha_ini)&mes(tb_coeficientes.fecha_ini)
+       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+
+    val BC_coef_cadena_calc_1: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_cadena_calc_1)
+    val BC_coef_cadena_calc_2: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_cadena_calc_2)
 
     /************************************************************************************************************/
 
@@ -416,11 +479,9 @@ object Inversion {
 
     val coef_anunciante_calc: Map[Long, Double] = spark.sql(
       s"""
-         |SELECT tc.indice
-         |FROM $tb_coeficientes AS tc,
+         |SELECT tc.cod_cadena, tc.indice
+         |FROM $tb_coeficientes AS tc $fctm_share_inv AS inv,
          |WHERE tc.coeficiente = "ANUNCIANTE"
-         |AND ($fctm_share_inv.cod_anunc = tc.cod_cadena OR
-         |$fctm_share_inv.cod_anunciante_subsidiario = tc. cod_cadena)
          |AND $fctm_share_inv.aniomes >= year(tc.fecha_ini)&mes(tc.fecha_ini)
          |AND $fctm_share_inv.aniomes <= year(tc.fecha_fin)&mes(tc.fecha_fin)
        """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
@@ -468,7 +529,11 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val fctm_share_inv_col_2: DataFrame = getColumn_costebase(spark, fctm_share_inv_col_0_3, BC_costebase_marca, BC_costebase_anunc, BC_costebase_producto, BC_costebase_grupo, BC_costebase_else)
+    val fctm_share_inv_col_1: DataFrame = getColumn_importe_pase( fctm_share_inv_col_0_3, BC_importe_pase)
+
+    /************************************************************************************************************/
+
+    val fctm_share_inv_col_2: DataFrame = getColumn_costebase(spark, fctm_share_inv_col_1, BC_costebase_marca, BC_costebase_anunc, BC_costebase_producto, BC_costebase_grupo, BC_costebase_else)
 
     /************************************************************************************************************/
 
@@ -488,7 +553,7 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val fctd_share_inv_col_7: DataFrame = getColumn_coef_pt( fctm_share_inv_col_6, BC_tb_coeficientes_list)
+    val fctd_share_inv_col_7: DataFrame = getColumn_coef_pt( fctm_share_inv_col_6, BC_tb_coeficientes_list,BC_cod_cadena_disney)
 
     /************************************************************************************************************/
 
@@ -517,51 +582,68 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val por_posmediaset_calc: Map[Long, Double] = spark.sql(
-      s"""SELECT in_pos.cod_cadena, (in_pos.sum_campana_grps_in_pos / in_mediaset.sum_campana_grps_in_mediaset)
+    val por_posmediaset_calc: Map[(Long,Long,Long,Double), Double] = spark.sql(
+      s"""SELECT in_pos.cod_cadena, in_pos.fecha_dia, in_pos.cod_grupo_n1, in_mediaset.grps_20_totales, (in_pos.sum_campana_grps_in_pos / in_mediaset.sum_campana_grps_in_mediaset)
          |AS por_posmediaset
          |FROM
-         |(SELECT cod_cadena, SUM(grps_20_totales) AS sum_campana_grps_in_pos FROM $fctm_share_inv
-         |WHERE cod_posicionado = 1 AND $fctm_share_inv.cod_cadena IN
-         |(SELECT $dim_agrup_cadenas.cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n1 = 20001)
-         |GROUP BY cod_cadena) AS in_pos
+         |(SELECT  $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, SUM(grps_20_totales) AS sum_campana_grps_in_pos FROM ${fctd_share_grps.getDBTable},${dim_agrup_cadenas.getDBTable}
+         |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
+         |AND $fctd_share_grps.cod_fg_posicionado = 1
+         |AND $fctd_share_grps.nom_sect_geog = "PYB"
+         |AND $fctd_share_grps.cod_fg_filtrado = 0
+         |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
+         |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
+         |AND $fctd_share_grps.fecha_dia between ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
+         |GROUP BY $fctd_share_grps.cod_cadena,$dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin) AS in_pos
          |JOIN
-         |(SELECT $fctm_share_inv.cod_cadena AS cod_cadena, SUM($fctm_share_inv.grps_20_totales) AS sum_campana_grps_in_mediaset
-         |FROM $fctm_share_inv
-         |WHERE $fctm_share_inv.cod_cadena IN
-         |(SELECT $dim_agrup_cadenas.cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n1 = 20001)
-         |GROUP BY $fctm_share_inv.cod_cadena) AS in_mediaset
+         |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, SUM($fctm_share_inv.grps_20_totales) AS sum_campana_grps_in_mediaset
+         |FROM ${fctd_share_grps.getDBTable},${dim_agrup_cadenas.getDBTable}
+         |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
+         |AND $fctd_share_grps.nom_sect_geog = "PYB"
+         |AND $fctd_share_grps.cod_fg_filtrado = 0
+         |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
+         |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
+         |AND $fctd_share_grps.fecha_dia between ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
+         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2) AS in_mediaset
          |ON (in_pos.cod_cadena = in_mediaset.cod_cadena)
-       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
 
-    val BC_por_posmediaset_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(por_posmediaset_calc)
+    val BC_por_posmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]] = spark.sparkContext.broadcast(por_posmediaset_calc)
 
     val fctd_share_inv_col_14: DataFrame = getColumn_por_posmediaset( fctd_share_inv_col_13, BC_por_posmediaset_calc)
     registerTemporalTable(fctd_share_inv_col_14, s"$fctm_share_inv")
 
     /************************************************************************************************************/
 
-    val por_posgrupocadena_n2_calc = spark.sql(
-      s"""SELECT a.cod_cadena, (a.grps_20_totales / b.sum_grps_20_totales) AS por_pos_grupocadena
+    val por_posgrupocadena_n1_calc: Map[(Long,Long,Long,Double), Double] = spark.sql(
+      s"""SELECT in_pos.cod_cadena, in_pos.fecha_dia, in_pos.cod_grupo_n1, in_mediaset.grps_20_totales, (in_pos.sum_campana_grps_in_pos / in_mediaset.sum_campana_grps_in_mediaset)
+         |AS por_posmediaset
          |FROM
-         |(SELECT $fctm_share_inv.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2, $fctm_share_inv.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, SUM(grps_20_totales) AS grps_20_totales
-         |FROM $fctm_share_inv, ${dim_agrup_cadenas.getDBTable}
-         |WHERE $fctm_share_inv.cod_cadena = $dim_agrup_cadenas.cod_cadena AND $fctm_share_inv.cod_posicionado = 1
-         |AND $fctm_share_inv.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
-         |GROUP BY $fctm_share_inv.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2, $fctm_share_inv.fecha_dia,
-         |$dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin) AS a
+         |(SELECT  $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, SUM(grps_20_totales) AS sum_campana_grps_in_pos FROM ${fctd_share_grps.getDBTable},${dim_agrup_cadenas.getDBTable}
+         |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
+         |AND $fctd_share_grps.cod_fg_posicionado = 1
+         |AND $fctd_share_grps.nom_sect_geog = "PYB"
+         |AND $fctd_share_grps.cod_fg_filtrado = 0
+         |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
+         |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
+         |AND $fctd_share_grps.fecha_dia between ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
+         |GROUP BY $fctd_share_grps.cod_cadena,$dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin) AS in_pos
          |JOIN
-         |(SELECT $fctm_share_inv.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2, SUM(grps_20_totales) AS sum_grps_20_totales
-         |FROM $fctm_share_inv, ${dim_agrup_cadenas.getDBTable}
-         |WHERE $fctm_share_inv.cod_cadena = $dim_agrup_cadenas.cod_cadena
-         |AND $fctm_share_inv.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
-         |GROUP BY $fctm_share_inv.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2) AS b
-         |ON (a.cod_cadena = b.cod_cadena)
-       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+         |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, SUM($fctm_share_inv.grps_20_totales) AS sum_campana_grps_in_mediaset
+         |FROM ${fctd_share_grps.getDBTable},${dim_agrup_cadenas.getDBTable}
+         |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
+         |AND $fctd_share_grps.nom_sect_geog = "PYB"
+         |AND $fctd_share_grps.cod_fg_filtrado = 0
+         |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
+         |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
+         |AND $fctd_share_grps.fecha_dia between ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
+         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1) AS in_mediaset
+         |ON (in_pos.cod_cadena = in_mediaset.cod_cadena)
+       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
 
-    val BC_por_posgrupocadena_n2_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(por_posgrupocadena_n2_calc)
+    val BC_por_posgrupocadena_n1_calc: Broadcast[Map[(Long,Long,Long,Double),Double]] = spark.sparkContext.broadcast(por_posgrupocadena_n1_calc)
 
-    val fctd_share_inv_col_15: DataFrame = getColumn_por_posGrupoCadena_n2( fctd_share_inv_col_14, BC_por_posgrupocadena_n2_calc)
+    val fctd_share_inv_col_15: DataFrame = getColumn_por_posGrupoCadena_n1( fctd_share_inv_col_14, BC_por_posgrupocadena_n1_calc)
 
     /************************************************************************************************************/
 
@@ -581,7 +663,7 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val fctd_share_inv_col_20: DataFrame = getColumn_coef_cadena( fctd_share_inv_col_19, BC_coef_cadena_calc)
+    val fctd_share_inv_col_20: DataFrame = getColumn_coef_cadena( fctd_share_inv_col_19, BC_coef_cadena_calc_1, BC_coef_cadena_calc_2)
 
     /************************************************************************************************************/
 
@@ -610,7 +692,7 @@ object Inversion {
          |-- SUBSTRING(GRPS_N2.fecha_dia, 1, 7) AS fecha_dia
          |FROM
          |(SELECT
-         |$dim_agrup_cadenas.DES_GRUPO_N2,
+         |$dim_agrup_cadenas.cod_grupo_n2,
          |sum($fctm_share_inv.inv_pre) AS SUMAINVN2,
          |CAST(CONCAT(SUBSTRING($fctm_share_inv.fecha_dia, 1, 7), '-01') AS TIMESTAMP) as fecha_dia
          |FROM $fctm_share_inv, ${dim_agrup_cadenas.getDBTable}
@@ -618,13 +700,13 @@ object Inversion {
          |AND CAST(CONCAT(SUBSTRING($fctm_share_inv.fecha_dia, 1, 7), '-01') AS TIMESTAMP) >= CAST(CONCAT(SUBSTRING($dim_agrup_cadenas.fecha_ini, 1, 7), '-01') AS TIMESTAMP)
          |AND CAST(CONCAT(SUBSTRING($fctm_share_inv.fecha_dia, 1, 7), '-01') AS TIMESTAMP) <= CAST(CONCAT(SUBSTRING($dim_agrup_cadenas.fecha_fin, 1, 7), '-31') AS TIMESTAMP)
          |AND DES_GRUPO_N0="TTV"
-         |GROUP BY $dim_agrup_cadenas.DES_GRUPO_N2, $fctm_share_inv.fecha_dia) AS GRPS_N2
+         |GROUP BY $dim_agrup_cadenas.cod_grupo_n2, $fctm_share_inv.fecha_dia) AS GRPS_N2
          |RIGHT JOIN
-         |(SELECT DES_GRUPO_N1, DES_GRUPO_N2, CAST(CONCAT(SUBSTRING($dim_agrup_cadenas.fecha_ini, 1, 7), '-01') AS TIMESTAMP) as mesanioini,
+         |(SELECT cod_grupo_n1, cod_grupo_n2, CAST(CONCAT(SUBSTRING($dim_agrup_cadenas.fecha_ini, 1, 7), '-01') AS TIMESTAMP) as mesanioini,
          |CAST(CONCAT(SUBSTRING($dim_agrup_cadenas.fecha_fin, 1, 7), '-31') AS TIMESTAMP) as mesaniofin
          |FROM ${dim_agrup_cadenas.getDBTable}
          |WHERE DES_GRUPO_N0 LIKE "%INFOADEX%") AS N1_INFOADEX
-         |WHERE GRPS_N2.DES_GRUPO_N2 = N1_INFOADEX.DES_GRUPO_N2
+         |WHERE GRPS_N2.cod_grupo_n2 = N1_INFOADEX.cod_grupo_n2
          |AND GRPS_N2.fecha_dia >= N1_INFOADEX.mesanioini
          |AND GRPS_N2.fecha_dia <= N1_INFOADEX.mesaniofin
        """.stripMargin).collect().map(x => x(0).asInstanceOf[String] -> x(1).asInstanceOf[java.lang.Double]).toMap
@@ -947,8 +1029,24 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_costebase(spark: SparkSession, originDF: DataFrame, BC_costebase_marca: Broadcast[Map[Long, Double]], BC_costebase_anunc: Broadcast[Map[Long, Double]],
-                          BC_costebase_producto: Broadcast[Map[Long, Double]], BC_costebase_grupo: Broadcast[Map[Long, Double]], BC_costebase_else: Broadcast[Map[Long,Double]]): DataFrame = {
+  def getColumn_importe_pase(originDF: DataFrame, BC_importe_pase: Broadcast[Map[(Long,String,Long,Long,Long,Long,Long,Double), Double]]): DataFrame = {
+    originDF.withColumn("importe_pase", UDF_importe_pase(BC_importe_pase)(col("aniomes"),col("nom_cadena"),col("cod_target_compra"),col("cod_anunc"),col("cod_anunciante_subsidiario"),col("cod_anuncio"),col("cod_marca"),col("grps_20_totales")))
+  }
+
+  def UDF_importe_pase(BC_importe_pase: Broadcast[Map[(Long,String,Long,Long,Long,Long,Long,Double), Double]]): UserDefinedFunction = {
+    udf[Double,Long,String,Long,Long,Long,Long,Long,Double]((aniomes, nom_cadena,cod_target_compra,cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_marca, grps_20_totales)  => FN_cod_fg_grupomediaset(aniomes, nom_cadena,cod_target_compra,cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_marca, grps_20_totales, BC_importe_pase.value))
+  }
+
+  def FN_cod_fg_grupomediaset(aniomes:Long, nom_cadena: String,cod_target_compra:Long,cod_anunc:Long, cod_anunciante_subsidiario:Long, cod_anuncio:Long, cod_marca:Long, grps_20_totales:Double, importe_pase: Map[(Long,String,Long,Long,Long,Long,Long,Double), Double]): Double = {
+
+    importe_pase.getOrElse((aniomes, nom_cadena,cod_target_compra,cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_marca, grps_20_totales), 0D)
+
+  }
+
+  /************************************************************************************************************/
+
+  def getColumn_costebase(spark: SparkSession, originDF: DataFrame, BC_costebase_marca: Broadcast[Map[(Long,Long), Double]], BC_costebase_anunc: Broadcast[Map[(Long,Long), Double]],
+                          BC_costebase_producto: Broadcast[Map[(Long,Long), Double]], BC_costebase_grupo: Broadcast[Map[(Long,Long), Double]], BC_costebase_else: Broadcast[Map[(Long,Long),Double]]): DataFrame = {
 
     import spark.implicits._
 
@@ -956,32 +1054,32 @@ object Inversion {
       UDF_costebase(BC_costebase_marca, BC_costebase_anunc,
         BC_costebase_producto, BC_costebase_grupo, BC_costebase_else)(col("cod_fg_cadmediaset"), col("cod_fg_campemimediaset"), col("cod_fg_anuncmediaset"),
         col("cod_fg_prodmediaset"), col("cod_fg_grupomediaset"), col("cod_marca"), col("cod_anunc"),
-        col("cod_producto"), col("cod_grupo")))
+        col("cod_producto"), col("cod_grupo"),col ("mesanio")))
 
   }
 
-  def UDF_costebase(BC_costebase_marca: Broadcast[Map[Long, Double]], BC_costebase_anunc: Broadcast[Map[Long, Double]],
-                    BC_costebase_producto: Broadcast[Map[Long, Double]], BC_costebase_grupo: Broadcast[Map[Long, Double]], BC_costebase_else: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
-    udf[Double, Int, Int, Int, Int, Int, Long, Long, Long, Long]((cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, cod_marca, cod_anunc, cod_producto, cod_grupo) => FN_costebase(BC_costebase_marca.value,
-      BC_costebase_anunc.value, BC_costebase_producto.value, BC_costebase_grupo.value,BC_costebase_else.value, cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, cod_marca, cod_anunc, cod_producto, cod_grupo))
+  def UDF_costebase(BC_costebase_marca: Broadcast[Map[(Long,Long), Double]], BC_costebase_anunc: Broadcast[Map[(Long,Long), Double]],
+                    BC_costebase_producto: Broadcast[Map[(Long,Long), Double]], BC_costebase_grupo: Broadcast[Map[(Long,Long), Double]], BC_costebase_else: Broadcast[Map[(Long,Long), Double]]): UserDefinedFunction = {
+    udf[Double, Int, Int, Int, Int, Int, Long, Long, Long, Long, Long]((cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, cod_marca, cod_anunc, cod_producto, cod_grupo, mesanio) => FN_costebase(BC_costebase_marca.value,
+      BC_costebase_anunc.value, BC_costebase_producto.value, BC_costebase_grupo.value,BC_costebase_else.value, cod_fg_cadmediaset, cod_fg_campemimediaset, cod_fg_anuncmediaset, cod_fg_prodmediaset, cod_fg_grupomediaset, cod_marca, cod_anunc, cod_producto, cod_grupo, mesanio))
   }
 
-  def FN_costebase(costebase_marca: Map[Long, Double], costebase_anunc: Map[Long, Double], costebase_producto: Map[Long, Double], costebase_grupo: Map[Long, Double],costebase_else: Map[Long,Double], cod_fg_cadmediaset: Int,
-                   cod_fg_campemimediaset: Int, cod_fg_anuncmediaset: Int, cod_fg_prodmediaset: Int, cod_fg_grupomediaset: Int, cod_marca: Long, cod_anunc: Long, cod_producto: Long, cod_grupo: Long): Double = {
+  def FN_costebase(costebase_marca: Map[(Long,Long), Double], costebase_anunc: Map[(Long,Long), Double], costebase_producto: Map[(Long,Long), Double], costebase_grupo: Map[(Long,Long), Double],costebase_else: Map[(Long,Long), Double], cod_fg_cadmediaset: Int,
+                   cod_fg_campemimediaset: Int, cod_fg_anuncmediaset: Int, cod_fg_prodmediaset: Int, cod_fg_grupomediaset: Int, cod_marca: Long, cod_anunc: Long, cod_producto: Long, cod_grupo: Long, mesanio: Long): Double = {
 
     var result = 0D
 
     if(cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 1) {
-      result = costebase_marca.getOrElse(cod_marca, 0D)
+      result = costebase_marca.getOrElse((mesanio,cod_marca), 0D)
     } else if (cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 1) {
-      result = costebase_anunc.getOrElse(cod_anunc, 0D)
+      result = costebase_anunc.getOrElse((mesanio, cod_anunc), 0D)
     } else if (cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 1) {
-      result = costebase_producto.getOrElse(cod_producto, 0D)
+      result = costebase_producto.getOrElse((mesanio, cod_producto), 0D)
     } else if (cod_fg_cadmediaset == 0 && cod_fg_campemimediaset == 0 && cod_fg_anuncmediaset == 0 && cod_fg_prodmediaset == 0 && cod_fg_grupomediaset == 1) {
-      result = costebase_grupo.getOrElse(cod_grupo, 0D)
+      result = costebase_grupo.getOrElse((mesanio, cod_grupo), 0D)
     }
     else if(cod_fg_cadmediaset == 1){
-      result = costebase_else.getOrElse(cod_anunc,0D)
+      result = costebase_else.getOrElse((mesanio, cod_anunc),0D)
     }
     result
   }
@@ -1006,34 +1104,34 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_por_pt_mediaset( originDF: DataFrame, BC_por_pt_mediaset_calc: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_por_pt_mediaset( originDF: DataFrame, BC_por_pt_mediaset_calc: Broadcast[Map[(Long,Long,Long,Long), Double]]): DataFrame = {
 
-    originDF.withColumn("por_pt_mediaset", UDF_por_pt_mediaset(BC_por_pt_mediaset_calc)(col("cod_cadena")))
+    originDF.withColumn("por_pt_mediaset", UDF_por_pt_mediaset(BC_por_pt_mediaset_calc)(col("aniomes"), col("cod_anuncio"), col("cod_anunc"),col("cod_cadena")))
   }
 
-  def UDF_por_pt_mediaset(BC_por_pt_mediaset_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
+  def UDF_por_pt_mediaset(BC_por_pt_mediaset_calc: Broadcast[Map[(Long,Long,Long,Long), Double]]): UserDefinedFunction = {
 
-    udf[Double, Long]( cod_cadena => FN_por_pt_mediaset(BC_por_pt_mediaset_calc.value, cod_cadena ))
+    udf[Double, Long, Long,Long,Long]( (aniomes, cod_anuncio, cod_anunc, cod_cadena) => FN_por_pt_mediaset(BC_por_pt_mediaset_calc.value, aniomes, cod_anuncio, cod_anunc, cod_cadena ))
   }
 
-  def FN_por_pt_mediaset(por_pt_mediaset_calc: Map[Long, Double], cod_cadena: Long): Double = {
+  def FN_por_pt_mediaset(por_pt_mediaset_calc: Map[(Long,Long,Long,Long), Double], aniomes: Long, cod_anuncio: Long, cod_anunc: Long, cod_cadena: Long): Double = {
 
-    por_pt_mediaset_calc.getOrElse(cod_cadena, 0D)
+    por_pt_mediaset_calc.getOrElse((aniomes, cod_anuncio, cod_anunc, cod_cadena), 0D)
 
   }
 
   /************************************************************************************************************/
 
-  def getColumn_por_pt_grupocadena( originDF: DataFrame, BC_por_pt_grupocadena_calc: Broadcast[Map[Long, Double]]): DataFrame = {
-    originDF.withColumn("por_pt_grupocadena", UDF_por_pt_grupocadena(BC_por_pt_grupocadena_calc)(col("cod_cadena")))
+  def getColumn_por_pt_grupocadena( originDF: DataFrame, BC_por_pt_grupocadena_calc: Broadcast[Map[(Long,Long,Long,Long), Double]]): DataFrame = {
+    originDF.withColumn("por_pt_grupocadena", UDF_por_pt_grupocadena(BC_por_pt_grupocadena_calc)(col("cod_cadena"),col("aniomes"),col("cod_grupo_n2"),col("cod_anuncio")))
   }
 
-  def UDF_por_pt_grupocadena(BC_por_pt_grupocadena_calc:  Broadcast[Map[Long, Double]]): UserDefinedFunction = {
-    udf[Double, Long ](cod_cadena => FN_por_pt_grupocadena(BC_por_pt_grupocadena_calc.value, cod_cadena))
+  def UDF_por_pt_grupocadena(BC_por_pt_grupocadena_calc:  Broadcast[Map[(Long,Long,Long,Long), Double]]): UserDefinedFunction = {
+    udf[Double, Long, Long, Long, Long]((cod_cadena, aniomes, cod_grupo_n2, cod_anuncio) => FN_por_pt_grupocadena(BC_por_pt_grupocadena_calc.value, cod_cadena, aniomes, cod_grupo_n2, cod_anuncio))
   }
 
-  def FN_por_pt_grupocadena(porPtGrupoCadena_calc: Map[Long, Double], cod_cadena: Long): Double = {
-    porPtGrupoCadena_calc.getOrElse(cod_cadena, 0D)
+  def FN_por_pt_grupocadena(porPtGrupoCadena_calc: Map[(Long,Long,Long,Long), Double], cod_cadena: Long, aniomes: Long, cod_grupo_n2: Long, cod_anuncio: Long): Double = {
+    porPtGrupoCadena_calc.getOrElse((cod_cadena, aniomes, cod_grupo_n2, cod_anuncio), 0D)
   }
 
   /************************************************************************************************************/
@@ -1054,26 +1152,28 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_coef_pt( originDF: DataFrame, BC_tb_coeficientes_list: Broadcast[List[Coeficientes]]): DataFrame = {
-    originDF.withColumn("coef_pt", UDF_coef_pt(BC_tb_coeficientes_list)(col("dif_por_primetime")))
+  def getColumn_coef_pt( originDF: DataFrame, BC_tb_coeficientes_list: Broadcast[List[Coeficientes]],BC_cod_cadena_disney: Broadcast[List[Long]]): DataFrame = {
+    originDF.withColumn("coef_pt", UDF_coef_pt(BC_tb_coeficientes_list,BC_cod_cadena_disney)(col("dif_por_primetime"),col("aniomes"),col("cod_cadena")))
   }
 
-  def UDF_coef_pt(BC_tb_coeficientes_list: Broadcast[List[Coeficientes]]): UserDefinedFunction = {
+  def UDF_coef_pt(BC_tb_coeficientes_list: Broadcast[List[Coeficientes]],BC_cod_cadena_disney_list:Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Double,Double,BigInt]( (dif_por_primetime,aniomes)  => FN_coef_pt( BC_tb_coeficientes_list.value, dif_por_primetime,aniomes) )
+    udf[Double,Double,BigInt,Long]( (dif_por_primetime,aniomes,cod_cadena)  => FN_coef_pt( BC_tb_coeficientes_list.value,BC_cod_cadena_disney_list.value, dif_por_primetime,aniomes,cod_cadena) )
 
   }
 
-  def FN_coef_pt(Coeficientes_list: List[Coeficientes], dif_por_primetime: Double , aniomes : BigInt): Double = {
+  def FN_coef_pt(Coeficientes_list: List[Coeficientes], cod_cadena_disney: List[Long], dif_por_primetime: Double, aniomes : BigInt, cod_cadena : Long): Double = {
 
     var result = 1D
-    for (elem <- Coeficientes_list) {
-      if ( elem.coeficiente.equalsIgnoreCase("PRIMETIME")
-        && dif_por_primetime > elem.MIN_RANGO
-        && dif_por_primetime <= elem.MAX_RANGO
-        && aniomes >= transformToAniomes(elem.fecha_ini)
-        && aniomes <= transformToAniomes(elem.fecha_fin)){
-        result = elem.INDICE
+    if(!cod_cadena_disney.contains(cod_cadena)){
+      for (elem <- Coeficientes_list) {
+        if ( elem.coeficiente.equalsIgnoreCase("PRIMETIME")
+          && dif_por_primetime > elem.MIN_RANGO
+          && dif_por_primetime <= elem.MAX_RANGO
+          && aniomes >= transformToAniomes(elem.fecha_ini)
+          && aniomes <= transformToAniomes(elem.fecha_fin)){
+          result = elem.INDICE
+        }
       }
     }
     result
@@ -1081,36 +1181,36 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_por_cualmediaset( originDF: DataFrame, BC_por_cualmediaset_calc: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_por_cualmediaset( originDF: DataFrame, BC_por_cualmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]]): DataFrame = {
 
-    originDF.withColumn("por_cualmediaset", UDF_por_cualmediaset(BC_por_cualmediaset_calc)(col("cod_cadena")))
+    originDF.withColumn("por_cualmediaset", UDF_por_cualmediaset(BC_por_cualmediaset_calc)(col("cod_cadena"), col("fecha_dia"), col("cod_grupo_n1"), col("grps_20_totales")))
   }
 
-  def UDF_por_cualmediaset(BC_por_cualmediaset_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
+  def UDF_por_cualmediaset(BC_por_cualmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]]): UserDefinedFunction = {
 
-    udf[Double, Long ]( cod_cadena  => FN_por_cualmediaset(BC_por_cualmediaset_calc.value, cod_cadena))
+    udf[Double,Long,Long,Long,Double]( (cod_cadena,fecha_dia,cod_grupo_n1,grps_20_totales)  => FN_por_cualmediaset(BC_por_cualmediaset_calc.value, cod_cadena, fecha_dia, cod_grupo_n1, grps_20_totales))
   }
 
-  def FN_por_cualmediaset(porCualmediaset_calc: Map[Long, Double], cod_cadena: Long): Double = {
+  def FN_por_cualmediaset(porCualmediaset_calc: Map[(Long,Long,Long,Double), Double], cod_cadena: Long, fecha_dia: Long, cod_grupo_n1: Long, grps_20_totales: Double ): Double = {
 
-    porCualmediaset_calc.getOrElse(cod_cadena, 0D)
+    porCualmediaset_calc.getOrElse((cod_cadena, fecha_dia, cod_grupo_n1, grps_20_totales), 0D)
   }
 
   /************************************************************************************************************/
 
-  def getColumn_por_cualgrupocadena( originDF: DataFrame, BC_por_cualgrupocadena_calc: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_por_cualgrupocadena( originDF: DataFrame, BC_por_cualgrupocadena_calc: Broadcast[Map[(Long,Long,Long,Double), Double]]): DataFrame = {
 
-    originDF.withColumn("por_cualgrupocadena", UDF_por_cualgrupocadena(BC_por_cualgrupocadena_calc)(col("cod_cadena")))
+    originDF.withColumn("por_cualgrupocadena", UDF_por_cualgrupocadena(BC_por_cualgrupocadena_calc)(col("cod_cadena"), col("fecha_dia"), col("cod_grupo_n2"), col("grps_20_totales")))
   }
 
-  def UDF_por_cualgrupocadena(BC_por_cualgrupocadena_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
+  def UDF_por_cualgrupocadena(BC_por_cualgrupocadena_calc: Broadcast[Map[(Long,Long,Long,Double), Double]]): UserDefinedFunction = {
 
-    udf[Double, Long]( cod_cadena => FN_por_cualgrupocadena(BC_por_cualgrupocadena_calc.value, cod_cadena))
+    udf[Double, Long,Long,Long,Double]( (cod_cadena,fecha_dia,cod_grupo_n2,grps_20_totales) => FN_por_cualgrupocadena(BC_por_cualgrupocadena_calc.value, cod_cadena,fecha_dia,cod_grupo_n2,grps_20_totales))
   }
 
-  def FN_por_cualgrupocadena(porCualGrupoCadena_calc: Map[Long, Double], cod_cadena: Long): Double = {
+  def FN_por_cualgrupocadena(porCualGrupoCadena_calc: Map[(Long,Long,Long,Double), Double], cod_cadena: Long, fecha_dia: Long, cod_grupo_n2: Long, grps_20_totales: Double ): Double = {
 
-    porCualGrupoCadena_calc.getOrElse(cod_cadena, 0D)
+    porCualGrupoCadena_calc.getOrElse((cod_cadena,fecha_dia,cod_grupo_n2,grps_20_totales), 0D)
 
   }
 
@@ -1185,35 +1285,37 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_por_posmediaset( originDF: DataFrame, BC_por_posmediaset_calc: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_por_posmediaset( originDF: DataFrame, BC_por_posmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]]): DataFrame = {
 
-    originDF.withColumn("por_posmediaset", UDF_por_posmediaset(BC_por_posmediaset_calc)(col("cod_cadena")))
+    originDF.withColumn("por_posmediaset", UDF_por_posmediaset(BC_por_posmediaset_calc)(col("cod_cadena"),col("fecha_dia"),col("cod_grupo_n1"),col("grps_20_totales")))
   }
 
-  def UDF_por_posmediaset(BC_por_posmediaset_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
-    udf[Double, Long] ( cod_cadena => FN_por_posmediaset(BC_por_posmediaset_calc.value, cod_cadena))
+
+  def UDF_por_posmediaset(BC_por_posmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]]): UserDefinedFunction = {
+    udf[Double, Long,Long,Long,Double] ( (cod_cadena,fecha_dia,cod_grupo_n1,grps_20_totales) => FN_por_posmediaset(BC_por_posmediaset_calc.value, cod_cadena,fecha_dia,cod_grupo_n1,grps_20_totales))
   }
 
-  def FN_por_posmediaset(porPosMediaset_calc: Map[Long, Double], cod_cadena: Long): Double = {
+  def FN_por_posmediaset(porPosMediaset_calc: Map[(Long,Long,Long,Double), Double], cod_cadena: Long, fecha_dia:Long, cod_grupo_n1: Long, grps_20_totales: Double): Double = {
 
-    porPosMediaset_calc.getOrElse(cod_cadena, 0D)
+    porPosMediaset_calc.getOrElse((cod_cadena,fecha_dia,cod_grupo_n1,grps_20_totales), 0D)
 
   }
 
   /************************************************************************************************************/
 
-  def getColumn_por_posGrupoCadena_n2( originDF: DataFrame, BC_por_posgrupocadena_n2_calc: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_por_posGrupoCadena_n1( originDF: DataFrame, BC_por_posgrupocadena_n1_calc: Broadcast[Map[(Long,Long,Long,Double),Double]]): DataFrame = {
 
-    originDF.withColumn("por_posGrupoCadenaN2", UDF_por_posGrupoCadenaN2(BC_por_posgrupocadena_n2_calc)(col("cod_cadena")))
+    originDF.withColumn("por_posGrupoCadena", UDF_por_posGrupoCadena(BC_por_posgrupocadena_n1_calc)(col("cod_cadena"),col("fecha_dia"),col("cod_grupo_n1"),col("grps_20_totales")))
   }
 
-  def UDF_por_posGrupoCadenaN2(BC_por_posgrupocadena_n2_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
-    udf[Double, Long] ( cod_cadena => FN_por_posGrupoCadenaN2(BC_por_posgrupocadena_n2_calc.value, cod_cadena))
+
+  def UDF_por_posGrupoCadena(BC_por_posgrupocadena_n1_calc: Broadcast[Map[(Long,Long,Long,Double),Double]]): UserDefinedFunction = {
+    udf[Double,Long,Long,Long,Double] ( (cod_cadena,fecha_dia,cod_grupo_n1,grps_20_totales) => FN_por_posGrupoCadena(BC_por_posgrupocadena_n1_calc.value, cod_cadena,fecha_dia,cod_grupo_n1,grps_20_totales))
   }
 
-  def FN_por_posGrupoCadenaN2(porPosGrupoCadena_n2_calc: Map[Long, Double], cod_cadena: Long): Double = {
+  def FN_por_posGrupoCadena(porPosGrupoCadena_n1_calc: Map[(Long,Long,Long,Double),Double], cod_cadena: Long, fecha_dia:Long, cod_grupo_n1:Long, grps_20_totales: Double): Double = {
 
-    porPosGrupoCadena_n2_calc.getOrElse(cod_cadena, 0D)
+    porPosGrupoCadena_n1_calc.getOrElse((cod_cadena, fecha_dia, cod_grupo_n1, grps_20_totales), 0D)
 
   }
 
@@ -1237,26 +1339,28 @@ object Inversion {
 
   def getColumn_coef_posic( originDF: DataFrame,  BC_tb_coeficientes_list: Broadcast[List[Coeficientes]]): DataFrame = {
 
-    originDF.withColumn("coef_posic", UDF_coef_posic(BC_tb_coeficientes_list)(col("dif_por_posicionamiento")))
+    originDF.withColumn("coef_posic", UDF_coef_posic(BC_tb_coeficientes_list)(col("dif_por_posicionamiento"), col("cod_fg_cualitativo")))
 
   }
 
   def UDF_coef_posic(BC_tb_coeficientes_list: Broadcast[List[Coeficientes]]): UserDefinedFunction = {
 
-    udf[Double, Double, BigInt]( (dif_por_posicionamiento,aniomes)  => FN_coef_posic( BC_tb_coeficientes_list.value, dif_por_posicionamiento,aniomes) )
+    udf[Double, Double, Long, BigInt]( (dif_por_posicionamiento,cod_fg_cualitativo,aniomes)  => FN_coef_posic( BC_tb_coeficientes_list.value, dif_por_posicionamiento,cod_fg_cualitativo,aniomes) )
 
   }
 
-  def FN_coef_posic(Coeficientes_list: List[Coeficientes], dif_por_posicionamiento: Double, aniomes: BigInt): Double = {
+  def FN_coef_posic(Coeficientes_list: List[Coeficientes], dif_por_posicionamiento: Double, cod_fg_cualitativo: Long, aniomes: BigInt): Double = {
 
     var result = 1D
-    for (elem <- Coeficientes_list) {
-      if ( elem.coeficiente.equalsIgnoreCase("Posicionado")
-        && dif_por_posicionamiento > elem.MIN_RANGO
-        && dif_por_posicionamiento <= elem.MAX_RANGO
-        && aniomes >= transformToAniomes(elem.fecha_ini)
-        && aniomes <= transformToAniomes(elem.fecha_fin)) {
-        result = elem.INDICE
+    if (cod_fg_cualitativo != 1) {
+      for (elem <- Coeficientes_list) {
+        if (elem.coeficiente.equalsIgnoreCase("POSICIONAMIENTO")
+          && dif_por_posicionamiento > elem.MIN_RANGO
+          && dif_por_posicionamiento <= elem.MAX_RANGO
+          && aniomes >= transformToAniomes(elem.fecha_ini)
+          && aniomes <= transformToAniomes(elem.fecha_fin)) {
+          result = elem.INDICE
+        }
       }
     }
     result
@@ -1294,7 +1398,7 @@ object Inversion {
 
     var result = 1D
     for (elem <- Coeficientes_list) {
-      if ( elem.coeficiente.equalsIgnoreCase("Cuota")
+      if ( elem.coeficiente.equalsIgnoreCase("CUOTA")
         && cuota_por_grupo > elem.MIN_RANGO
         && cuota_por_grupo <= elem.MAX_RANGO
         && aniomes >= transformToAniomes(elem.fecha_ini)
@@ -1308,20 +1412,27 @@ object Inversion {
   /************************************************************************************************************/
 
 
-  def getColumn_coef_cadena( originDF: DataFrame, BC_coef_cadena_cacl: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_coef_cadena( originDF: DataFrame, BC_coef_cadena_cacl1: Broadcast[Map[Long, Double]],BC_coef_cadena_cacl2: Broadcast[Map[Long, Double]]): DataFrame = {
 
-    originDF.withColumn("coef_cadena", UDF_coef_cadena(BC_coef_cadena_cacl)(col("cod_cadena")))
+    originDF.withColumn("coef_cadena", UDF_coef_cadena(BC_coef_cadena_cacl1,BC_coef_cadena_cacl2)(col("cod_cadena"),col("cod_fg_forta")))
   }
 
-  def UDF_coef_cadena(BC_coef_cadena_cacl: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
+  def UDF_coef_cadena(BC_coef_cadena_cacl: Broadcast[Map[Long, Double]], BC_coef_cadena_cacl2: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
 
-    udf[Double, Long]( cod_cadena => FN_coef_cadena(BC_coef_cadena_cacl.value, cod_cadena))
+    udf[Double, Long, Long]( (cod_cadena,cod_fg_forta) => FN_coef_cadena(BC_coef_cadena_cacl.value, BC_coef_cadena_cacl2.value, cod_cadena, cod_fg_forta))
   }
 
-  def FN_coef_cadena(coefCadena_cacl: Map[Long, Double], cod_cadena: Long): Double = {
+  def FN_coef_cadena(coefCadena_cacl1: Map[Long, Double], coefCadena_cacl2: Map[Long, Double], cod_cadena: Long, cod_fg_forta: Long): Double = {
 
-    coefCadena_cacl.getOrElse(cod_cadena, 0D)
+    var result = 1D
+    if (cod_cadena == 30006 && cod_fg_forta == 0 ) {
+      result = coefCadena_cacl1.getOrElse(cod_cadena, 1D)
+    }
+    else if(cod_cadena != 30006) {
+      result = coefCadena_cacl2.getOrElse(cod_cadena, 1D)
+    }
 
+    result
   }
 
   /************************************************************************************************************/
@@ -1330,24 +1441,20 @@ object Inversion {
     * @param BC_num_cadenas_forta_calc: Lista que contiene el numero de cadenas forta en las que ha sido emitido un determinado anuncio
     * @return
     */
-  def getColumn_num_cadenas_forta_emitido( originDF: DataFrame, BC_num_cadenas_forta_calc: Broadcast[List[(Long, Long)]]): DataFrame = {
+  def getColumn_num_cadenas_forta_emitido( originDF: DataFrame, BC_num_cadenas_forta_calc: Broadcast[Map[(Long,Long), Long]]): DataFrame = {
 
-    originDF.withColumn("num_cadenas_forta_emitido", UDF_num_cadenas_forta_emitido(BC_num_cadenas_forta_calc)(col("cod_anuncio")))
+    originDF.withColumn("num_cadenas_forta_emitido", UDF_num_cadenas_forta_emitido(BC_num_cadenas_forta_calc)(col("cod_anuncio"), col("aniomes")))
   }
 
-  def UDF_num_cadenas_forta_emitido(BC_num_cadenas_forta_calc: Broadcast[List[(Long, Long)]]): UserDefinedFunction = {
+  def UDF_num_cadenas_forta_emitido(BC_num_cadenas_forta_calc: Broadcast[Map[(Long,Long), Long]]): UserDefinedFunction = {
 
-    udf[Long, Long](cod_anuncio => FN_num_cadenas_forta_emitido(BC_num_cadenas_forta_calc.value, cod_anuncio))
+    udf[Long, Long, Long]((cod_anuncio,aniomes) => FN_num_cadenas_forta_emitido(BC_num_cadenas_forta_calc.value, cod_anuncio, aniomes))
   }
 
-  def FN_num_cadenas_forta_emitido(numCadenasFortaEmitidas: List[(Long, Long)], cod_anuncio: Long): Long = {
+  def FN_num_cadenas_forta_emitido(numCadenasFortaEmitidas: Map[(Long,Long), Long],cod_anuncio: Long, aniomes: Long): Long = {
 
-    var result = 0L
-    for (x <- numCadenasFortaEmitidas)
-      if (cod_anuncio == x._1) {
-        result = x._2
-      }
-    result
+    numCadenasFortaEmitidas.getOrElse((cod_anuncio,aniomes), 0L)
+
   }
 
   /************************************************************************************************************/
@@ -1377,18 +1484,22 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_coef_anunciante(originDF: DataFrame, BC_coef_anunciante_calc: Broadcast[Map[Long, Double]]) : DataFrame = {
-    originDF.withColumn("coef_anunciante", UDF_coef_anunciante(BC_coef_anunciante_calc)(col("cod_anunc")))
+    def getColumn_coef_anunciante(originDF: DataFrame, BC_coef_anunciante_calc: Broadcast[Map[Long, Double]]) : DataFrame = {
+    originDF.withColumn("coef_anunciante", UDF_coef_anunciante(BC_coef_anunciante_calc)(col("cod_anunc"), col("cod_anunciante_subsidiario")))
   }
 
   def UDF_coef_anunciante(BC_coef_anunciante_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
-    udf[Double, Long]( cod_anunc => FN_coef_anunciante(BC_coef_anunciante_calc.value, cod_anunc))
+    udf[Double, Long, Long]( (cod_anunc, cod_anunciante_subsidiario) => FN_coef_anunciante(BC_coef_anunciante_calc.value, cod_anunc, cod_anunciante_subsidiario))
   }
 
-  def FN_coef_anunciante(coefAnunciante_calc: Map[Long, Double], cod_anunc: Long): Double = {
+  def FN_coef_anunciante(coefAnunciante_calc: Map[Long, Double], cod_anunc: Long, cod_anunciante_subsidiario: Long): Double = {
 
-    coefAnunciante_calc.getOrElse(cod_anunc, 1D)
-
+    var result = 1D
+    result = coefAnunciante_calc.getOrElse(cod_anunc, 1D)
+    if(result == 1D){
+      result = coefAnunciante_calc.getOrElse(cod_anunciante_subsidiario, 1D)
+    }
+    result
 
   }
 
@@ -1467,7 +1578,6 @@ object Inversion {
                                fecha_dia,
                                aniomes,
                                grps_20_totales,
-                               importe_pase,
                                COD_DAY_PART,
                                COD_CADENA,
                                NOM_CADENA,
@@ -1513,7 +1623,6 @@ object Inversion {
                                nom_eventos,
                                cod_fg_anuncmediaset
                              FROM $fctm_share_inv
-                              WHERE cod_target_compra = cod_target
                               AND substr(dia_progrmd, 0, 10) >= "1999-01-01" AND substr(dia_progrmd, 0, 10) <= "2099-01-31"
     """)
     // TODO añadir filtro de fecha con los nuevos parametros
@@ -1526,12 +1635,10 @@ object Inversion {
     */
   def getTablon_fctm_share_inv(spark: SparkSession): DataFrame = {
 
-    spark.sql(s"""
+    val agrup_by_mediaset = spark.sql(s"""
                             SELECT
-                               fecha_dia,
                                aniomes,
                                SUM(grps_20_totales) AS grps_20_totales,
-                               importe_pase,
                                COD_DAY_PART,
                                COD_CADENA,
                                NOM_CADENA,
@@ -1568,54 +1675,35 @@ object Inversion {
                                NOM_HOLDING,
                                COD_CENTRAL,
                                NOM_CENTRAL,
-                               MAX(cod_fg_autonomica) AS cod_fg_autonomica, --Añadir función MAX ver doc
-                               MAX(cod_fg_forta) AS cod_fg_forta,
-                               MAX(cod_fg_boing) AS cod_fg_boing,
+                               cod_fg_autonomica,
+                               cod_fg_forta,
+                               cod_fg_boing,
                                cod_target_compra,
-                               MAX(cod_fg_filtrado) AS cod_fg_filtrado,
-                               MAX(cod_fg_campemimediaset) AS cod_fg_campemimediaset,
+                               cod_fg_filtrado,
+                               cod_fg_campemimediaset,
                                cod_eventos,
                                nom_eventos,
-                               MAX(cod_fg_anuncmediaset) AS cod_fg_anuncmediaset
+                               cod_fg_anuncmediaset,
+                               cod_fg_cadmediaset
                                FROM $fctm_share_inv
+                               WHERE cod_fg_cadmediaset = 1
                                GROUP BY
-                               fecha_dia,
                                dia_progrmd,
                                aniomes,
-                               importe_pase,
-                               COD_PERIODO,
-                               NOM_PERIODO,
                                COD_DAY_PART,
-                               DES_DAY_PART,
                                COD_CADENA,
                                 NOM_CADENA,
                                 COD_ANUNCIO,
                                 NOM_ANUNCIO,
                                 cod_anunciante_subsidiario,
                                 nom_anunciante_subsidiario,
-                                COD_SECT_GEOG,
-                                NOM_SECT_GEOG,
-                                COD_TIPOLOGIA,
-                                NOM_TIPOLOGIA,
-                                COD_COMUNICACION,
-                                NOM_COMUNICACION,
                                 COD_PRODUCTO,
                                 NOM_PRODUCTO,
                                 COD_GRUPO,
                                 NOM_GRUPO,
                                 COD_SECTOR,
                                 NOM_SECTOR,
-                                DURACION,
-                                COD_POS_PB2,
-                                COD_POS_PB3,
-                                NUM_SPOTS_PB2,
-                                NUM_SPOTS_PB3,
-                                COD_POSICION_PB2,
-                                NOM_POSICION_PB2,
-                                COD_POSICION_PB3,
-                                NOM_POSICION_PB3,
                                 COD_CUALITATIVO,
-                                NOM_CUALITATIVO,
                                 COD_EJECUTIVO,
                                 NOM_EJECUTIVO,
                                 COD_SUBDIVISION,
@@ -1638,31 +1726,109 @@ object Inversion {
                                 NOM_HOLDING,
                                 COD_CENTRAL,
                                 NOM_CENTRAL,
-                                COD_MARCA_H,
-                                NOM_MARCA_H,
-                                COD_ANUNC_H,
-                                NOM_ANUNC_H,
-                                COD_FG_ANUN_LOCAL,
-                                NOM_FG_ANUN_LOCAL,
-                                COD_FG_TELEVENTA,
-                                NOM_FG_TELEVENTA,
-                                COD_FG_PUB_COMPARTIDA,
-                                NOM_FG_PUB_COMPARTIDA,
-                                COD_FG_AUTOPROMO,
-                                NOM_FG_AUTOPROMO,
-                                cant_pases,
-                                cod_tp_lineanegocio_km,
-                                nom_tp_lineanegocio_km,
-                                cod_tp_categr_km,
-                                nom_tp_categr_km,
-                                cod_identif_franja,
-                                nom_identif_franja,
                                 cod_target_compra,
-                                cod_tp_computo_km,
-                                nom_tp_computo_km,
                                 cod_eventos,
                                 nom_eventos
                              """)
+
+    val agrup_by_Nomediaset = spark.sql(s"""
+                            SELECT
+                               aniomes,
+                               SUM(grps_20_totales) AS grps_20_totales,
+                               COD_DAY_PART,
+                               COD_CADENA,
+                               NOM_CADENA,
+                               COD_ANUNCIO,
+                               NOM_ANUNCIO,
+                               cod_anunciante_subsidiario,
+                               nom_anunciante_subsidiario,
+                               COD_PRODUCTO,
+                               NOM_PRODUCTO,
+                               COD_GRUPO,
+                               NOM_GRUPO,
+                               COD_SECTOR,
+                               NOM_SECTOR,
+                               COD_CUALITATIVO,
+                               COD_EJECUTIVO,
+                               NOM_EJECUTIVO,
+                               COD_SUBDIVISION,
+                               NOM_SUBDIVISION,
+                               COD_DIVISION,
+                               NOM_DIVISION,
+                               COD_AREA,
+                               NOM_AREA,
+                               cod_dir_comercial,
+                               NOM_DIR_COMERCIAL,
+                               COD_DIR_GENERAL,
+                               NOM_DIR_GENERAL,
+                               COD_EMPRESA,
+                               NOM_EMPRESA,
+                               COD_MARCA,
+                               NOM_MARCA,
+                               COD_ANUNC,
+                               NOM_ANUNC,
+                               COD_HOLDING,
+                               NOM_HOLDING,
+                               COD_CENTRAL,
+                               NOM_CENTRAL,
+                               cod_fg_autonomica,
+                               cod_fg_forta,
+                               cod_fg_boing,
+                               cod_target_compra,
+                               cod_fg_filtrado,
+                               cod_fg_campemimediaset,
+                               cod_eventos,
+                               nom_eventos,
+                               cod_fg_anuncmediase,
+                               cod_fg_cadmediaset
+                               FROM $fctm_share_inv
+                               WHERE cod_fg_cadmediaset = 0
+                               GROUP BY
+                               dia_progrmd,
+                               aniomes,
+                               COD_DAY_PART,
+                               COD_CADENA,
+                                NOM_CADENA,
+                                COD_ANUNCIO,
+                                NOM_ANUNCIO,
+                                cod_anunciante_subsidiario,
+                                nom_anunciante_subsidiario,
+                                COD_PRODUCTO,
+                                NOM_PRODUCTO,
+                                COD_GRUPO,
+                                NOM_GRUPO,
+                                COD_SECTOR,
+                                NOM_SECTOR,
+                                COD_CUALITATIVO,
+                                COD_EJECUTIVO,
+                                NOM_EJECUTIVO,
+                                COD_SUBDIVISION,
+                                NOM_SUBDIVISION,
+                                COD_DIVISION,
+                                NOM_DIVISION,
+                                COD_AREA,
+                                NOM_AREA,
+                                cod_dir_comercial,
+                                NOM_DIR_COMERCIAL,
+                                COD_DIR_GENERAL,
+                                NOM_DIR_GENERAL,
+                                COD_EMPRESA,
+                                NOM_EMPRESA,
+                                COD_MARCA,
+                                NOM_MARCA,
+                                COD_ANUNC,
+                                NOM_ANUNC,
+                                COD_HOLDING,
+                                NOM_HOLDING,
+                                COD_CENTRAL,
+                                NOM_CENTRAL,
+                                cod_target_compra,
+                                cod_eventos,
+                                nom_eventos
+                             """)
+
+    val inversion_DF = agrup_by_mediaset.union(agrup_by_Nomediaset).toDF()
+    inversion_DF
   }
 
 

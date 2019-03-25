@@ -127,6 +127,7 @@ object Share {
     val rel_campania_trgt_map: Map[(Long, Long), Long] = spark.sql(s"""SELECT * FROM ${rel_campania_trgt.getDBTable}""").as[relCampaniaTrgt].collect().map( o => (o.cod_anuncio, o.cod_cadena ) -> o.cod_target ).toMap
     val eventos_list: List[Eventos] = spark.sql(s"""SELECT * FROM $tb_eventos""").as[Eventos].collect().toList
 
+
     /************************************************************************************************************/
 
     // Creating broadcast objects to work on the nodes
@@ -167,6 +168,10 @@ object Share {
       s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_forta = 1 AND cod_cadena IS NOT NULL
          """.stripMargin).map(r => r.getLong(0)).collect.toList
     val BC_codigos_de_cadenas_forta: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_forta)
+
+    val cadenas_mediaset_grupo_n1: Set[Long] = spark.sql(s"""SELECT DISTINCT dim.cod_cadena FROM ${dim_agrup_cadenas.getDBTable} as dim, ${fcts_mercado_lineal.getDBTable} as share WHERE dim.cod_grupo_n1 = 20001 AND dim.cod_cadena IS NOT NULL AND share.cod_cadena IS NOT NULL AND dim.cod_cadena = share.cod_cadena AND share.dia_progrmd >= CONCAT(YEAR(dim.fecha_ini), MONTH(dim.fecha_ini)) AND share.dia_progrmd <= CONCAT(YEAR(dim.fecha_fin), MONTH(dim.fecha_fin))
+       """.stripMargin).map(x => x.getLong(0)).collect.toSet
+    val BC_cadenas_mediaset_grupo_n1: Broadcast[Set[Long]] = spark.sparkContext.broadcast(cadenas_mediaset_grupo_n1)
 
 
     val share_grps_cols_modif1 = FN_nom_sus_nomAnunc(share_grps_cols_inicial)
@@ -236,9 +241,10 @@ object Share {
     /************************************************************************************************************/
 
     val share_grps_cols_19: DataFrame = getColumn_cod_fg_posicionado(share_grps_cols_18_nom)
+    val share_grps_cols_20: DataFrame = getColumn_cod_fg_cadmediaset(share_grps_cols_19, BC_cadenas_mediaset_grupo_n1)
 
 
-    val share_grps_current_timestamp: DataFrame = setCurrentTimeStamp(share_grps_cols_19, timezone)
+    val share_grps_current_timestamp: DataFrame = setCurrentTimeStamp(share_grps_cols_20, timezone)
 
     val result = share_grps_current_timestamp
 
@@ -990,6 +996,27 @@ object Share {
 
     result
   }
+
+  def getColumn_cod_fg_cadmediaset(originDF: DataFrame, BC_cadenas_mediaset_grupo_n1: Broadcast[Set[Long]]): DataFrame = {
+    originDF.withColumn("cod_fg_cadmediaset", UDF_cod_fg_cadmediaset(BC_cadenas_mediaset_grupo_n1)(col("cod_cadena")))
+  }
+
+  def UDF_cod_fg_cadmediaset(BC_cadenas_mediaset_grupo_n1: Broadcast[Set[Long]]): UserDefinedFunction = {
+
+    udf[Int, Long]( cod_cadena => FN_cod_fg_cadmediaset(BC_cadenas_mediaset_grupo_n1.value, cod_cadena))
+
+  }
+
+  def FN_cod_fg_cadmediaset(cadenasMediasetGrupo_n1: Set[Long], cod_cadena: Long): Int =  {
+
+    var result = 0
+    if( cadenasMediasetGrupo_n1.contains(cod_cadena)) {
+      result = 1
+    }
+    result
+  }
+
+
 
 
 
