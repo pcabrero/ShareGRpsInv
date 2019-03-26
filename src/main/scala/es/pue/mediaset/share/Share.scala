@@ -152,6 +152,7 @@ object Share {
 //    /************************************************************************************************************/
 
     val codigos_de_cadenas_boing: List[Long] = spark.sql(s"""SELECT DISTINCT cod_anuncio FROM $fctd_share_grps WHERE cod_cadena IN ("5176") AND cod_anuncio IS NOT NULL""").map(r => r.getLong(0)).collect.toList
+
     val BC_codigos_de_cadenas_boing: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_boing)
 
     val codigos_de_cadenas_campemimediaset: List[Long] = spark.sql(
@@ -182,28 +183,33 @@ object Share {
 
 
     val share_grps_cols_1: DataFrame = getColumn_cod_tp_lineanegocio_km(share_grps_cols_modif2, BC_dim_linea_negocio_list)
+    share_grps_cols_1.count()
     val share_grps_cols_1_nom: DataFrame = getColumn_nom_tp_lineanegocio_km(share_grps_cols_1, BC_dim_linea_negocio_list)
-
+    share_grps_cols_1_nom.count()
     /************************************************************************************************************/
 
     val share_grps_cols_2: DataFrame = getColumn_cod_tp_categr_km(share_grps_cols_1_nom, BC_dim_linea_negocio_list )
+    share_grps_cols_2.count()
     val share_grps_cols_3: DataFrame = getColumn_nom_tp_categr_km(share_grps_cols_2, BC_dim_linea_negocio_list )
-
+    share_grps_cols_3.count()
     /************************************************************************************************************/
 
     val share_grps_cols_4: DataFrame = getColumn_cod_fg_autonomica(share_grps_cols_3, BC_agrupCadenas_list, BC_codigos_de_cadenas_autonomicas )
+    share_grps_cols_4.count()
     val share_grps_cols_5: DataFrame = setNomOnColumn(share_grps_cols_4, "cod_fg_autonomica" , "nom_fg_autonomica")
-
+    share_grps_cols_5.count()
     /************************************************************************************************************/
 
     val share_grps_cols_6: DataFrame = getColumn_cod_fg_forta(share_grps_cols_5, BC_agrupCadenas_list, BC_codigos_de_cadenas_forta )
+    share_grps_cols_6.count()
     val share_grps_cols_7: DataFrame = setNomOnColumn(share_grps_cols_6, "cod_fg_forta" , "nom_fg_forta")
-
+    share_grps_cols_7.count()
     /************************************************************************************************************/
 
     val share_grps_cols_8: DataFrame = getColumn_cod_fg_boing(share_grps_cols_7, BC_agrupCadenas_list, BC_codigos_de_cadenas_boing)
+    share_grps_cols_8.count()
     val share_grps_cols_9: DataFrame = setNomOnColumn(share_grps_cols_8, "cod_fg_boing" , "nom_fg_boing")
-
+    share_grps_cols_9.count()
     /************************************************************************************************************/
 
     val share_grps_cols_10: DataFrame = getColumn_cod_identif_franja(share_grps_cols_9, BC_configuraciones_list)
@@ -628,7 +634,7 @@ object Share {
       if(elem.des_accion != "Filtrar") {
         if ( (elem.cod_cadena == cod_cadena && elem.cod_programa == cod_programa)
           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)) {
-          result = elem.cod_accion
+          result = elem.cod_accion.toLong
         } else {
           result = cod_cadena
         }

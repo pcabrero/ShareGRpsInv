@@ -153,7 +153,7 @@ object Inversion {
          | AND nom_sect_geog = "PYB"
          | AND $fctd_share_grps.cod_fg_filtrado = 0
          | AND cod_target_compra = cod_target
-         | GROUP BY aniomes,cod_cadena) AS in_pt
+         | GROUP BY aniomes,cod_anuncio,cod_anunc,cod_cadena) AS in_pt
          | JOIN
          | (SELECT aniomes, cod_anuncio, cod_anunc, $fctd_share_grps.cod_cadena AS cod_cadena, SUM($fctd_share_grps.grps_20_totales) AS sum_campana_grps_in_mediaset
          | FROM ${fctd_share_grps.getDBTable} WHERE $fctd_share_grps.cod_cadena IN (SELECT $dim_agrup_cadenas.cod_cadena FROM
@@ -161,9 +161,11 @@ object Inversion {
          | AND $fctd_share_grps.nom_sect_geog = "PYB"
          | AND $fctd_share_grps.cod_fg_filtrado = 0
          | AND cod_target_compra = cod_target
-         | GROUP BY $fctd_share_grps.cod_cadena) AS in_mediaset
+         | GROUP BY $fctd_share_grps.aniomes, $fctd_share_grps.cod_anuncio, $fctd_share_grps.cod_anunc, $fctd_share_grps.cod_cadena) AS in_mediaset
          | ON in_pt.cod_cadena = in_mediaset.cod_cadena
          | AND in_pt.aniomes = in_mediaset.aniomes
+         | AND in_pt.cod_anunc = in_mediaset.cod_anunc
+         | AND in_pt.cod_anuncio = in_mediaset.cod_anuncio
        """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Long]) -> x(4).asInstanceOf[Double]).toMap
 
     val BC_por_pt_mediaset_calc: Broadcast[Map[(Long,Long,Long,Long), Double]] = spark.sparkContext.broadcast(por_pt_mediaset_calc)
@@ -171,32 +173,22 @@ object Inversion {
     /************************************************************************************************************/
 
     val por_cualmediaset_calc: Map[(Long,Long,Long,Double), Double] = spark.sql(
-      s"""SELECT a.cod_cadena,a.fecha_dia,a.cod_grupo_n1,b.grps_20_totales,(a.grps_20_totales/b.grps_20_totales) AS POR_cual_mediaset
-         |FROM
-         |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
-         |SUM(grps_20_totales) AS grps_20_totales
-         |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
-         |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
-         |AND $fctd_share_grps.cod_cualitativo = 1
-         |AND  $fctd_share_grps.cod_sect_geog = "PYB"
-         |AND  $fctd_share_grps.cod_fg_filtrado = 0
-         |AND  $fctd_share_grps.cod_target_compra =  $fctd_share_grps.cod_target
-         |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
-         |AND  $fctd_share_grps.fecha_dia BETWEEN ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
-         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia,$dim_agrup_cadenas.fecha_ini,$dim_agrup_cadenas.fecha_fin)
-         |AS a
-         |
-         |(SELECT $fctd_share_grps.cod_cadena,$fctd_share_grps.fecha_dia,$fctd_share_grps.cod_grupo_n1,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin,
-         |SUM(grps_20_totales) AS sum_grps_20_totales
-         |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
-         | WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
-         |AND  $fctd_share_grps.fecha_dia BETWEEN ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
-         |AND  $fctd_share_grps.cod_sect_geog = "PYB"
-         |AND  $fctd_share_grps.cod_fg_filtrado = 0
-         |AND  $fctd_share_grps.cod_target_compra =  $fctd_share_grps.cod_target
-         |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
-         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2) AS b
-       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
+      s"""SELECT a.cod_cadena,a.fecha_dia,a.cod_grupo_n1,b.grps_20_totales,(a.grps_20_totales/b.grps_20_totales) AS por_cual_mediaset FROM
+         |(SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, SUM(grps_20_totales)
+         |AS grps_20_totales FROM ${fctd_share_grps.getDBTable},${dim_agrup_cadenas.getDBTable} WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena AND $fctd_share_grps.cod_cualitativo = 1 AND
+         |$fctd_share_grps.cod_sect_geog = "PYB" AND $fctd_share_grps.cod_fg_filtrado = 0 AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target AND $dim_agrup_cadenas.cod_grupo_n1 = 20001 AND
+         |$fctd_share_grps.fecha_dia BETWEEN ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin) GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini,$dim_agrup_cadenas.fecha_fin) AS a
+         |JOIN (SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $fctd_share_grps.fecha_dia,$fctd_share_grps.cod_grupo_n1,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin, SUM(grps_20_totales) AS sum_grps_20_totales
+         |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable} WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena AND $fctd_share_grps.fecha_dia BETWEEN ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
+         |AND $fctd_share_grps.cod_sect_geog = "PYB" AND $fctd_share_grps.cod_fg_filtrado = 0 AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target AND $dim_agrup_cadenas.cod_grupo_n1 = 20001 GROUP BY $fctd_share_grps.cod_cadena,
+         |$dim_agrup_cadenas.cod_grupo_n2) AS b
+         | ON a.cod_cadena = b.cod_cadena
+         | AND a.aniomes = b.aniomes
+         | AND a.cod_grupo_n1 = b.cod_grupo_n1
+         | AND a.fecha_dia = b.fecha_dia
+         | AND a.fecha_ini = b.fecha_ini
+         | AND a.fecha_fin = b.fecha_fin
+         | """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
 
     val BC_por_cualmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]] = spark.sparkContext.broadcast(por_cualmediaset_calc)
 
@@ -204,7 +196,7 @@ object Inversion {
 
     val por_pt_grupocadena_calc: Map[(Long,Long,Long,Long), Double] = spark.sql(
       s"""SELECT DISTINCT a.cod_cadena, a.aniomes,a.cod_grupo_n1,a.cod_anuncio,(a.grps_20_totales / b.sum_grps_20_totales) AS por_pt_grupocadena FROM
-         |(SELECT $fctd_share_grps.cod_cadena, sum(grps_20_totales) as grps_20_totales
+         |(SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $fctd_share_grps.cod_anuncio, $fctd_share_grps.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, sum(grps_20_totales) as grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
          |AND $fctd_share_grps.cod_day_part = 1
@@ -213,9 +205,9 @@ object Inversion {
          |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
          |AND $fctd_share_grps.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini,
-         |$dim_agrup_cadenas.fecha_fin) AS a
+         |$dim_agrup_cadenas.fecha_fin, $fctd_share_grps.aniomes) AS a
          |JOIN
-         |(SELECT $fctd_share_grps.cod_cadena, sum(grps_20_totales) AS sum_grps_20_totales
+         |(SELECT $fctd_share_grps.cod_cadena,$fctd_share_grps.aniomes, $fctd_share_grps.cod_anuncio, $fctd_share_grps.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, sum(grps_20_totales) AS sum_grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
          |AND $fctd_share_grps.nom_sect_geo = "PYB"
@@ -223,8 +215,13 @@ object Inversion {
          |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
          |AND $fctd_share_grps.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini,
-         |$dim_agrup_cadenas.fecha_fin) AS b
+         |$dim_agrup_cadenas.fecha_fin, $fctd_share_grps.aniomes) AS b
          |ON (a.cod_cadena = b.cod_cadena)
+         | AND a.aniomes = b.aniomes
+         | AND a.cod_grupo_n1 = b.cod_grupo_n1
+         | AND a.fecha_dia = b.fecha_dia
+         | AND a.fecha_ini = b.fecha_ini
+         | AND a.fecha_fin = b.fecha_fin
        """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Long]) -> x(4).asInstanceOf[Double]).toMap
 
     val BC_por_pt_grupocadena_calc: Broadcast[Map[(Long,Long,Long,Long), Double]] = spark.sparkContext.broadcast(por_pt_grupocadena_calc)
@@ -234,7 +231,7 @@ object Inversion {
     val por_cualgrupocadena_calc: Map[(Long,Long,Long,Double), Double] = spark.sql(
       s"""SELECT a.cod_cadena,a.fecha_dia,a.cod_grupo_n2,b.grps_20_totales,(a.grps_20_totales/b.grps_20_totales) AS POR_cual_grupoN2
          |FROM
-         |(SELECT $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
+         |(SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n2, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
          |SUM(grps_20_totales) AS grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
@@ -243,8 +240,8 @@ object Inversion {
          |AND  $fctd_share_grps.cod_target_compra =  $fctd_share_grps.cod_target
          |AND  $fctd_share_grps.fecha_dia BETWEEN ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2,$fctd_share_grps.fecha_dia,$dim_agrup_cadenas.fecha_ini,$dim_agrup_cadenas.fecha_fin)
-         |AS a
-         |(SELECT $fctd_share_grps.cod_cadena,$fctd_share_grps.fecha_dia,$fctd_share_grps.cod_grupo_n2,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin,
+         |AS a JOIN
+         |(SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $fctd_share_grps.fecha_dia,$fctd_share_grps.cod_grupo_n2,$fctd_share_grps.fecha_ini,$fctd_share_grps.fecha_fin,
          |SUM(grps_20_totales) AS sum_grps_20_totales
          |FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable}
          | WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
@@ -253,16 +250,21 @@ object Inversion {
          |AND  $fctd_share_grps.cod_fg_filtrado = 0
          |AND  $fctd_share_grps.cod_target_compra =  $fctd_share_grps.cod_target
          |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2) AS b
+         | ON a.cod_cadena = b.cod_cadena
+         | AND a.aniomes = b.aniomes
+         | AND a.cod_grupo_n2 = b.cod_grupo_n2
+         | AND a.fecha_dia = b.fecha_dia
+         | AND a.fecha_ini = b.fecha_ini
+         | AND a.fecha_fin = b.fecha_fin
        """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
 
     val BC_por_cualgrupocadena_calc: Broadcast[Map[(Long,Long,Long,Double), Double]] = spark.sparkContext.broadcast(por_cualgrupocadena_calc)
 
     /************************************************************************************************************/
 
-    val cuota_por_grupo_calc: Map[Long, Double] = spark.sql(
+    val cuota_por_grupo_calc: Map[(Long,Long,Long,Long,Long), Double] = spark.sql(
       s"""SELECT a.aniomes,a.cod_grupo_n1,a.fecha_dia,a.fecha_ini,a.fecha_fin,(a.grps_20_totales / b.sum_grps_20_totales) AS cuota
-         |FROM
-         |(SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
+         |FROM SELECT $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin,
          |SUM(grps_20_totales) AS grps_20_totales FROM ${fctd_share_grps.getDBTable}, ${dim_agrup_cadenas.getDBTable} WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
          |AND $fctd_share_grps.fecha_dia BETWEEN $dim_agrup_cadenas.fecha_ini AND $dim_agrup_cadenas.fecha_fin
          |GROUP BY $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes, $dim_agrup_cadenas.cod_grupo_n1, $fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin) AS a
@@ -275,9 +277,14 @@ object Inversion {
          |GROUP BY $fctd_share_grps.cod_cadena, $fctd_share_grps.aniomes
          |$dim_agrup_cadenas.cod_grupo_n0) AS b
          |ON (a.cod_cadena = b.cod_cadena)
-       """.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+         | AND a.aniomes = b.aniomes
+         | AND a.cod_grupo_n1 = b.cod_grupo_n0
+         | AND a.fecha_dia = b.fecha.dia
+         | AND a.fecha_ini = b.fecha_ini
+         | AND a.fecha_fin = b.fecha_fin
+       """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Long],x(4).asInstanceOf[Long]) -> x(5).asInstanceOf[Double]).toMap
 
-    val BC_cuota_por_grupo_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(cuota_por_grupo_calc)
+    val BC_cuota_por_grupo_calc: Broadcast[Map[(Long,Long,Long,Long,Long), Double]] = spark.sparkContext.broadcast(cuota_por_grupo_calc)
 
     /************************************************************************************************************/
     /*
@@ -588,7 +595,7 @@ object Inversion {
          |FROM
          |(SELECT  $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin, SUM(grps_20_totales) AS sum_campana_grps_in_pos FROM ${fctd_share_grps.getDBTable},${dim_agrup_cadenas.getDBTable}
          |WHERE $fctd_share_grps.cod_cadena = $dim_agrup_cadenas.cod_cadena
-         |AND $fctd_share_grps.cod_fg_posicionado = 1
+         |AND $fctd_share_grps.cod_fg_posicionado in (1)
          |AND $fctd_share_grps.nom_sect_geog = "PYB"
          |AND $fctd_share_grps.cod_fg_filtrado = 0
          |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
@@ -604,8 +611,12 @@ object Inversion {
          |AND $fctd_share_grps.cod_target_compra = $fctd_share_grps.cod_target
          |AND $dim_agrup_cadenas.cod_grupo_n1 = 20001
          |AND $fctd_share_grps.fecha_dia between ($dim_agrup_cadenas.fecha_ini;$dim_agrup_cadenas.fecha_fin)
-         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n2) AS in_mediaset
+         |GROUP BY $fctd_share_grps.cod_cadena, $dim_agrup_cadenas.cod_grupo_n1,$fctd_share_grps.fecha_dia, $dim_agrup_cadenas.fecha_ini, $dim_agrup_cadenas.fecha_fin) AS in_mediaset
          |ON (in_pos.cod_cadena = in_mediaset.cod_cadena)
+         | AND in_pos.cod_grupo_n1 = in_mediaset.cod_grupo_n1
+         | AND in_pos.fecha_dia = in_mediaset.fecha_dia
+         | AND in_pos.fecha_ini = in_mediaset.fecha_ini
+         | AND in_pos.fecha_fin = in_mediaset.fecha_fin
        """.stripMargin).collect().map( x => (x(0).asInstanceOf[Long],x(1).asInstanceOf[Long],x(2).asInstanceOf[Long],x(3).asInstanceOf[Double]) -> x(4).asInstanceOf[Double]).toMap
 
     val BC_por_posmediaset_calc: Broadcast[Map[(Long,Long,Long,Double), Double]] = spark.sparkContext.broadcast(por_posmediaset_calc)
@@ -1368,16 +1379,16 @@ object Inversion {
 
   /************************************************************************************************************/
 
-  def getColumn_cuota_por_grupo( originDF: DataFrame, BC_cuota_por_grupo_calc: Broadcast[Map[Long, Double]]): DataFrame = {
-    originDF.withColumn("cuota_por_grupo", UDF_cuota_por_grupo(BC_cuota_por_grupo_calc)(col("cod_cadena")))
+  def getColumn_cuota_por_grupo( originDF: DataFrame, BC_cuota_por_grupo_calc: Broadcast[Map[(Long,Long,Long,Long,Long), Double]]): DataFrame = {
+    originDF.withColumn("cuota_por_grupo", UDF_cuota_por_grupo(BC_cuota_por_grupo_calc)(col("aniomes"),col("cod_grupo_n1"),col("fecha_dia"),col("fecha_ini"),col("fecha_fin")))
   }
 
-  def UDF_cuota_por_grupo(BC_cuota_por_grupo_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
-    udf[Double, Long](cod_cadena => FN_cuota_por_grupo(BC_cuota_por_grupo_calc.value, cod_cadena))
+  def UDF_cuota_por_grupo(BC_cuota_por_grupo_calc: Broadcast[Map[(Long,Long,Long,Long,Long), Double]]): UserDefinedFunction = {
+    udf[Double, Long,Long,Long,Long,Long]((aniomes,cod_grupo_n1,fecha_dia,fecha_ini,fecha_fin) => FN_cuota_por_grupo(BC_cuota_por_grupo_calc.value, aniomes,cod_grupo_n1,fecha_dia,fecha_ini,fecha_fin))
   }
 
-  def FN_cuota_por_grupo(cuotaPorGrupo_calc: Map[Long, Double], cod_cadena: Long): Double = {
-    cuotaPorGrupo_calc.getOrElse(cod_cadena, 0D)
+  def FN_cuota_por_grupo(cuotaPorGrupo_calc: Map[(Long,Long,Long,Long,Long), Double], aniomes:Long,cod_grupo_n1:Long,fecha_dia:Long,fecha_ini:Long,fecha_fin:Long): Double = {
+    cuotaPorGrupo_calc.getOrElse((aniomes,cod_grupo_n1,fecha_dia,fecha_ini,fecha_fin), 0D)
   }
 
   /************************************************************************************************************/
@@ -1623,7 +1634,7 @@ object Inversion {
                                nom_eventos,
                                cod_fg_anuncmediaset
                              FROM $fctm_share_inv
-                              AND substr(dia_progrmd, 0, 10) >= "1999-01-01" AND substr(dia_progrmd, 0, 10) <= "2099-01-31"
+                              AND substr(dia_progrmd, 0, 10) >= "2019-01-01" AND substr(dia_progrmd, 0, 10) <= "2019-01-31"
     """)
     // TODO añadir filtro de fecha con los nuevos parametros
   }
