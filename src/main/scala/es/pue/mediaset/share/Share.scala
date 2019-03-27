@@ -1164,6 +1164,12 @@ object Share {
       NOM_FG_AUTOPROMO,
       NOM_PROGRAMA,
       COD_PROGRAMA,
+      FG_TIPO_ANUNC,
+      NOM_FG_TIPO_ANUNC,
+      FG_TIPO_CENTRAL,
+      NOM_FG_TIPO_CENTRAL,
+      nom_marca_km,
+      cod_marca_km,
       -- COLUMNAS SOBRE LAS QUE SE AGREGARÁ
         CANT_PASES,
       GRPS_BRUTOS,
@@ -1277,6 +1283,12 @@ object Share {
                                NOM_FG_AUTOPROMO,
                                NOM_PROGRAMA,
                                COD_PROGRAMA,
+                               FG_TIPO_ANUNC,
+                               NOM_FG_TIPO_ANUNC,
+                               FG_TIPO_CENTRAL,
+                               NOM_FG_TIPO_CENTRAL,
+                               nom_marca_km,
+                               cod_marca_km,
                                SUM(CANT_PASES) AS CANT_PASES,
                                SUM(GRPS_BRUTOS) AS GRPS_BRUTOS,
                                SUM(GRPS_20) AS GRPS_20,
@@ -1376,7 +1388,13 @@ object Share {
                                COD_GRUPO_CENT,
                                NOM_GRUPO_CENT,
                                COD_CUALITATIVO_PE,
-                               NOM_CUALITATIVO_PE
+                               NOM_CUALITATIVO_PE,
+                               FG_TIPO_ANUNC,
+                               NOM_FG_TIPO_ANUNC,
+                               FG_TIPO_CENTRAL,
+                               NOM_FG_TIPO_CENTRAL,
+                               nom_marca_km,
+                               cod_marca_km,
                              """)
   }
 
