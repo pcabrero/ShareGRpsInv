@@ -156,8 +156,9 @@ object Share {
     val BC_codigos_de_cadenas_boing: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_boing)
 
     val codigos_de_cadenas_campemimediaset: List[Long] = spark.sql(
-      s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE des_grupo_n1 = "MEDIASET" AND cod_cadena IS NOT NULL
+      s"""SELECT DISTINCT cod_cadena FROM ${dim_agrup_cadenas.getDBTable} WHERE cod_grupo_n1 = 20001 AND cod_cadena IS NOT NULL
       """.stripMargin).map(r => r.getLong(0)).collect.toList
+
     val BC_codigos_de_cadenas_campemimediaset: Broadcast[List[Long]] = spark.sparkContext.broadcast(codigos_de_cadenas_campemimediaset)
 
     val codigos_de_cadenas_autonomicas: List[Long] = spark.sql(
@@ -462,10 +463,10 @@ object Share {
 
   def UDF_nom_tp_computo_km(BC_LineaNegocioList: Broadcast[List[LineaNegocio]], BC_param_tipologias_duracion: Broadcast[Array[Int]], BC_param_duracion_iiee: Broadcast[Int]): UserDefinedFunction = {
 
-    udf[String, Long, Long, Long, Int]( (fecha_dia, cod_tipologia, cod_comunicacion, duracion) => FN_nom_tp_computo_km(BC_LineaNegocioList.value, BC_param_tipologias_duracion.value, BC_param_duracion_iiee.value, fecha_dia, cod_tipologia, cod_comunicacion, duracion ))
+    udf[String, java.lang.Long, java.lang.Long, java.lang.Long, Int]( (fecha_dia, cod_tipologia, cod_comunicacion, duracion) => FN_nom_tp_computo_km(BC_LineaNegocioList.value, BC_param_tipologias_duracion.value, BC_param_duracion_iiee.value, fecha_dia, cod_tipologia, cod_comunicacion, duracion ))
   }
 
-  def FN_nom_tp_computo_km(lineaNegocioList: List[LineaNegocio], param_tipologias_duracion: Array[Int],param_duracion_iiee: Int, fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long, duracion: Int): String = {
+  def FN_nom_tp_computo_km(lineaNegocioList: List[LineaNegocio], param_tipologias_duracion: Array[Int],param_duracion_iiee: Int, fecha_dia: java.lang.Long, cod_tipologia: java.lang.Long,  cod_comunicacion: java.lang.Long, duracion: Int): String = {
 
     var result = "SIN ESPECIFICAR"
 
@@ -480,8 +481,6 @@ object Share {
             result = "IIEE 3'"
           }
 
-        } else {
-          result = elem.nom_tp_computo_km
         }
       }
     }
@@ -520,10 +519,10 @@ object Share {
 
   def UDF_cod_tp_computo_km(BC_LineaNegocioList: Broadcast[List[LineaNegocio]], BC_param_tipologias_duracion: Broadcast[Array[Int]], BC_param_duracion_iiee: Broadcast[Int]): UserDefinedFunction = {
 
-    udf[Long, Long, Long, Long, Int]( (fecha_dia, cod_tipologia, cod_comunicacion, duracion) => FN_cod_tp_computo_km(BC_LineaNegocioList.value, BC_param_tipologias_duracion.value, BC_param_duracion_iiee.value, fecha_dia, cod_tipologia, cod_comunicacion, duracion ))
+    udf[Long, java.lang.Long, java.lang.Long, java.lang.Long, Int]( (fecha_dia, cod_tipologia, cod_comunicacion, duracion) => FN_cod_tp_computo_km(BC_LineaNegocioList.value, BC_param_tipologias_duracion.value, BC_param_duracion_iiee.value, fecha_dia, cod_tipologia, cod_comunicacion, duracion ))
   }
 
-  def FN_cod_tp_computo_km(lineaNegocioList: List[LineaNegocio], param_tipologias_duracion: Array[Int],param_duracion_iiee: Int, fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long, duracion: Int): Long = {
+  def FN_cod_tp_computo_km(lineaNegocioList: List[LineaNegocio], param_tipologias_duracion: Array[Int],param_duracion_iiee: Int, fecha_dia: java.lang.Long, cod_tipologia: java.lang.Long,  cod_comunicacion: java.lang.Long, duracion: Int): Long = {
 
     var result = 3005L
 
@@ -538,10 +537,7 @@ object Share {
             result = 3003
           }
 
-        }else{
-          result = elem.cod_tp_computo_km
         }
-
       }
     }
 
@@ -559,7 +555,7 @@ object Share {
 
   def UDF_cod_fg_filtrado(BC_configuraciones_list: Broadcast[List[Configuraciones]]): UserDefinedFunction = {
 
-    udf[java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, Long]( (fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia) =>
+    udf[Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia) =>
       FN_cod_fg_filtrado(BC_configuraciones_list.value, fecha_dia, cod_anunc, cod_anunciante_subsidiario, cod_anuncio, cod_cadena, cod_programa, cod_tipologia))
 
   }
@@ -568,6 +564,7 @@ object Share {
                          cod_anuncio: java.lang.Long, cod_cadena: java.lang.Long, cod_programa: java.lang.Long, cod_tipologia: java.lang.Long): Long = {
 
     var result = 0L
+
 
     for(elem <- configuraciones_list){
       if(
@@ -626,17 +623,15 @@ object Share {
       col("cod_programa"), col("cod_cadena")))
   }
   def UDF_cod_identif_franja(BC_configuraciones_list: Broadcast[List[Configuraciones]]): UserDefinedFunction = {
-    udf[Long, Long, Long, Long]((fecha_dia, cod_programa, cod_cadena) => FN_cod_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_programa, cod_cadena ))
+    udf[Long, java.lang.Long, java.lang.Long, java.lang.Long]((fecha_dia, cod_programa, cod_cadena) => FN_cod_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_programa, cod_cadena ))
   }
-  def FN_cod_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: Long, cod_programa: Long, cod_cadena: Long): Long = {
-    var result = 0L
+  def FN_cod_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: java.lang.Long, cod_programa: java.lang.Long, cod_cadena: java.lang.Long): Long = {
+    var result = cod_cadena
     for(elem <- configuraciones_list){
       if(elem.des_accion != "Filtrar") {
         if ( (elem.cod_cadena == cod_cadena && elem.cod_programa == cod_programa)
           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)) {
-          result = elem.cod_accion.toLong
-        } else {
-          result = cod_cadena
+          result = elem.cod_accion
         }
       }
     }
@@ -649,18 +644,16 @@ object Share {
   }
 
   def UDF_nom_identif_franja(BC_configuraciones_list: Broadcast[List[Configuraciones]]): UserDefinedFunction = {
-    udf[String, Long, Long, Long, String]((fecha_dia, cod_programa, cod_cadena, nom_cadena) => FN_nom_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_programa, cod_cadena, nom_cadena ))
+    udf[String, java.lang.Long, java.lang.Long, java.lang.Long, String]((fecha_dia, cod_programa, cod_cadena, nom_cadena) => FN_nom_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_programa, cod_cadena, nom_cadena ))
   }
 
   def FN_nom_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: Long,cod_programa: Long, cod_cadena: Long, nom_cadena: String): String = {
-    var result = ""
+    var result = nom_cadena
     for(elem <- configuraciones_list){
       if(elem.des_accion != "Filtrar") {
-        if ( (elem.cod_cadena == cod_cadena && elem.cod_programa == cod_programa)
+        if ((elem.cod_cadena == cod_cadena && elem.cod_programa == cod_programa)
           && (fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin)) {
           result = elem.des_accion
-        } else {
-          result = nom_cadena
         }
       }
     }
@@ -677,10 +670,10 @@ object Share {
 
   def UDF_cod_tp_lineanegocio_km(BC_LineaNegocioList: Broadcast[List[LineaNegocio]]): UserDefinedFunction = {
 
-    udf[Long, Long, Long, Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_cod_tp_lineanegocio_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
+    udf[Long, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_cod_tp_lineanegocio_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
   }
 
-  def FN_cod_tp_lineanegocio_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): Long = {
+  def FN_cod_tp_lineanegocio_km(lineaNegocioList: List[LineaNegocio], fecha_dia: java.lang.Long, cod_tipologia: java.lang.Long,  cod_comunicacion: java.lang.Long ): Long = {
 
   var result = 1003L
 
@@ -703,10 +696,10 @@ object Share {
 
   def UDF_nom_tp_lineanegocio_km(BC_LineaNegocioList: Broadcast[List[LineaNegocio]]): UserDefinedFunction = {
 
-    udf[String, Long, Long, Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_nom_tp_lineanegocio_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
+    udf[String, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_nom_tp_lineanegocio_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
   }
 
-  def FN_nom_tp_lineanegocio_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): String = {
+  def FN_nom_tp_lineanegocio_km(lineaNegocioList: List[LineaNegocio], fecha_dia: java.lang.Long, cod_tipologia: java.lang.Long,  cod_comunicacion: java.lang.Long ): String = {
 
     var result = "SIN ESPECIFICAR"
 
@@ -729,10 +722,10 @@ object Share {
 
   def UDF_cod_tp_categr_km(BC_LineaNegocioList: Broadcast[List[LineaNegocio]]): UserDefinedFunction = {
 
-    udf[Long, Long, Long, Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_cod_tp_categr_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
+    udf[Long, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_cod_tp_categr_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
   }
 
-  def FN_cod_tp_categr_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): Long = {
+  def FN_cod_tp_categr_km(lineaNegocioList: List[LineaNegocio], fecha_dia: java.lang.Long, cod_tipologia: java.lang.Long,  cod_comunicacion: java.lang.Long ): Long = {
 
     var result = 2006L
 
@@ -754,10 +747,10 @@ object Share {
 
   def UDF_nom_tp_categr_km(BC_LineaNegocioList: Broadcast[List[LineaNegocio]]): UserDefinedFunction = {
 
-    udf[String, Long, Long, Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_nom_tp_categr_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
+    udf[String, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_tipologia, cod_comunicacion ) => FN_nom_tp_categr_km(BC_LineaNegocioList.value, fecha_dia, cod_tipologia, cod_comunicacion ))
   }
 
-  def FN_nom_tp_categr_km(lineaNegocioList: List[LineaNegocio], fecha_dia: Long, cod_tipologia: Long,  cod_comunicacion: Long ): String = {
+  def FN_nom_tp_categr_km(lineaNegocioList: List[LineaNegocio], fecha_dia: java.lang.Long, cod_tipologia: java.lang.Long,  cod_comunicacion: java.lang.Long ): String = {
 
     var result = "SIN ESPECIFICAR"
 
@@ -782,10 +775,10 @@ object Share {
 
   def UDF_cod_fg_autonomica(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_autonomicas: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_autonomica(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_autonomicas.value, fecha_dia, cod_cadena ))
+    udf[Int, java.lang.Long, java.lang.Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_autonomica(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_autonomicas.value, fecha_dia, cod_cadena ))
   }
 
-  def FN_cod_fg_autonomica(agrupCadenas_list: List[AgrupCadenas], codigosDeCadenasAutonomicas: List[Long], fecha_dia: Long, cod_cadena: Long ): Int = {
+  def FN_cod_fg_autonomica(agrupCadenas_list: List[AgrupCadenas], codigosDeCadenasAutonomicas: List[Long], fecha_dia: java.lang.Long, cod_cadena: java.lang.Long ): Int = {
 
     var result = 0
 
@@ -794,9 +787,7 @@ object Share {
 
           result = 1
         }
-        else {
-          result = 0
-        }
+
       }
     result
   }
@@ -811,19 +802,16 @@ object Share {
 
   def UDF_cod_fg_forta(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_forta: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_forta(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_forta.value, fecha_dia, cod_cadena ))
+    udf[Int, java.lang.Long, java.lang.Long]( (fecha_dia, cod_cadena ) => FN_cod_fg_forta(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_forta.value, fecha_dia, cod_cadena ))
   }
 
-  def FN_cod_fg_forta(agrupCadenas_list: List[AgrupCadenas], codigosDeCadenasForta: List[Long], fecha_dia: Long, cod_cadena: Long ): Int = {
+  def FN_cod_fg_forta(agrupCadenas_list: List[AgrupCadenas], codigosDeCadenasForta: List[Long], fecha_dia: java.lang.Long, cod_cadena: java.lang.Long ): Int = {
 
     var result = 0
 
     for(elem <- agrupCadenas_list) {
       if (codigosDeCadenasForta.contains(cod_cadena) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin ) {
           result = 1
-        } else {
-
-          result = 0
         }
       }
 
@@ -840,10 +828,10 @@ object Share {
 
   def UDF_cod_fg_boing(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_boing: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, Long, Long]( (fecha_dia, cod_cadena, cod_anuncio ) => FN_cod_fg_boing(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_boing.value, fecha_dia, cod_cadena, cod_anuncio ))
+    udf[Int, Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_cadena, cod_anuncio ) => FN_cod_fg_boing(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_boing.value, fecha_dia, cod_cadena, cod_anuncio ))
   }
 
-  def FN_cod_fg_boing(agrupCadenas_list: List[AgrupCadenas], codigos_de_cadenas_boing_list: List[Long], fecha_dia: Long, cod_cadena: Long, cod_anuncio: Long ): Int = {
+  def FN_cod_fg_boing(agrupCadenas_list: List[AgrupCadenas], codigos_de_cadenas_boing_list: List[Long], fecha_dia: java.lang.Long, cod_cadena: java.lang.Long, cod_anuncio: java.lang.Long ): Int = {
 
 
     var result = 0
@@ -852,8 +840,6 @@ object Share {
       if (codigos_de_cadenas_boing_list.contains(cod_anuncio) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
 
         result = 1
-      } else {
-        result = 0
       }
     }
     result
@@ -869,10 +855,10 @@ object Share {
 
   def UDF_cod_target_compra(BC_rel_campania_trgt_list: Broadcast[scala.collection.immutable.Map[(Long,Long),Long]]): UserDefinedFunction = {
 
-    udf[Long, Long, Long]( (cod_anuncio, cod_cadena ) => FN_cod_target_compra(BC_rel_campania_trgt_list.value, cod_anuncio, cod_cadena ))
+    udf[Long, java.lang.Long, java.lang.Long]( (cod_anuncio, cod_cadena ) => FN_cod_target_compra(BC_rel_campania_trgt_list.value, cod_anuncio, cod_cadena ))
   }
 
-  def FN_cod_target_compra(rel_campania_trgt_map: scala.collection.immutable.Map[(Long,Long),Long], cod_anuncio: Long, cod_cadena: Long ): Long = {
+  def FN_cod_target_compra(rel_campania_trgt_map: scala.collection.immutable.Map[(Long,Long),Long], cod_anuncio: java.lang.Long, cod_cadena: java.lang.Long ): Long = {
 
     rel_campania_trgt_map.getOrElse((cod_anuncio,cod_cadena),0L)
 
@@ -888,20 +874,16 @@ object Share {
 
   def UDF_cod_fg_campemimediaset(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_campemimediaset: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, Long, Long]( (fecha_dia, cod_anuncio, cod_cadena ) => FN_cod_fg_campemimediaset(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_campemimediaset.value, fecha_dia, cod_anuncio, cod_cadena ))
+    udf[Int, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_anuncio, cod_cadena ) => FN_cod_fg_campemimediaset(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_campemimediaset.value, fecha_dia, cod_anuncio, cod_cadena ))
   }
 
-  def FN_cod_fg_campemimediaset(agrupCadenas_list: List[AgrupCadenas], codigos_de_cadenas_campemimediaset: List[Long], fecha_dia: Long, cod_anuncio: Long, cod_cadena: Long ): Int = {
+  def FN_cod_fg_campemimediaset(agrupCadenas_list: List[AgrupCadenas], codigos_de_cadenas_campemimediaset: List[Long], fecha_dia: java.lang.Long, cod_anuncio: java.lang.Long, cod_cadena: java.lang.Long ): Int = {
 
-    var result = -1
+    var result = 0
 
     for(elem <- agrupCadenas_list) {
       if(codigos_de_cadenas_campemimediaset.contains(cod_cadena) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
-
         result = 1
-
-      } else {
-        result = 0
       }
     }
 
@@ -923,21 +905,17 @@ object Share {
 
   def UDF_cod_eventos(BC_eventos_list: Broadcast[List[Eventos]]): UserDefinedFunction = {
 
-    udf[Long, Long, Long, Long]( (fecha_dia, cod_cadena, cod_programa ) => FN_cod_eventos(BC_eventos_list.value, fecha_dia, cod_cadena, cod_programa ))
+    udf[Long, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_cadena, cod_programa ) => FN_cod_eventos(BC_eventos_list.value, fecha_dia, cod_cadena, cod_programa ))
   }
 
-  def FN_cod_eventos(eventos_list: List[Eventos], fecha_dia: Long, cod_cadena: Long, cod_programa: Long ): Long = {
+  def FN_cod_eventos(eventos_list: List[Eventos], fecha_dia: java.lang.Long, cod_cadena: java.lang.Long, cod_programa: java.lang.Long ): Long = {
 
     var result = 0L
 
     for(elem <- eventos_list) {
       if(cod_cadena == elem.cod_cadena && cod_programa == elem.cod_programa
         && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
-
         result = elem.cod_evento
-
-      } else {
-        result = 0
       }
     }
 
@@ -952,21 +930,17 @@ object Share {
 
   def UDF_nom_eventos(BC_eventos_list: Broadcast[List[Eventos]]): UserDefinedFunction = {
 
-    udf[String, Long, Long, Long]( (fecha_dia, cod_cadena, cod_programa ) => FN_nom_eventos(BC_eventos_list.value, fecha_dia, cod_cadena, cod_programa ))
+    udf[String, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_cadena, cod_programa ) => FN_nom_eventos(BC_eventos_list.value, fecha_dia, cod_cadena, cod_programa ))
   }
 
-  def FN_nom_eventos(eventos_list: List[Eventos], fecha_dia: Long, cod_cadena: Long, cod_programa: Long ): String = {
+  def FN_nom_eventos(eventos_list: List[Eventos], fecha_dia: java.lang.Long, cod_cadena: java.lang.Long, cod_programa: java.lang.Long ): String = {
 
     var result = ""
 
     for(elem <- eventos_list) {
       if(cod_cadena == elem.cod_cadena && cod_programa == elem.cod_programa
         && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
-
         result = elem.des_evento
-
-      } else {
-        result = ""
       }
     }
 
@@ -983,20 +957,18 @@ object Share {
 
   def UDF_cod_fg_anuncmediaset(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_campemimediaset: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, Long, Long]( (fecha_dia, cod_anunciante_subsidiario, cod_cadena ) => FN_cod_fg_anuncmediaset(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_campemimediaset.value, fecha_dia, cod_anunciante_subsidiario, cod_cadena ))
+    udf[Int, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_anunciante_subsidiario, cod_cadena ) => FN_cod_fg_anuncmediaset(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_campemimediaset.value, fecha_dia, cod_anunciante_subsidiario, cod_cadena ))
   }
 
-  def FN_cod_fg_anuncmediaset(agrupCadenas_list: List[AgrupCadenas], codigos_de_cadenas_campemimediaset: List[Long], fecha_dia: Long, cod_anunciante_subsidiario: Long, cod_cadena: Long ): Int = {
+  def FN_cod_fg_anuncmediaset(agrupCadenas_list: List[AgrupCadenas], codigos_de_cadenas_campemimediaset: List[Long], fecha_dia: java.lang.Long, cod_anunciante_subsidiario: java.lang.Long, cod_cadena: java.lang.Long ): Int = {
 
-    var result = -1
+    var result = 0
 
     for(elem <- agrupCadenas_list) {
       if(codigos_de_cadenas_campemimediaset.contains(cod_cadena) && fecha_dia >= elem.fecha_ini && fecha_dia <= elem.fecha_fin) {
 
         result = 1
 
-      } else {
-        result = 0
       }
     }
 
@@ -1009,11 +981,11 @@ object Share {
 
   def UDF_cod_fg_cadmediaset(BC_cadenas_mediaset_grupo_n1: Broadcast[Set[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long]( cod_cadena => FN_cod_fg_cadmediaset(BC_cadenas_mediaset_grupo_n1.value, cod_cadena))
+    udf[Int, java.lang.Long]( cod_cadena => FN_cod_fg_cadmediaset(BC_cadenas_mediaset_grupo_n1.value, cod_cadena))
 
   }
 
-  def FN_cod_fg_cadmediaset(cadenasMediasetGrupo_n1: Set[Long], cod_cadena: Long): Int =  {
+  def FN_cod_fg_cadmediaset(cadenasMediasetGrupo_n1: Set[Long], cod_cadena: java.lang.Long): Int =  {
 
     var result = 0
     if( cadenasMediasetGrupo_n1.contains(cod_cadena)) {
@@ -1021,17 +993,6 @@ object Share {
     }
     result
   }
-
-
-
-
-
-
-
-
-
-
-
 
   /************************************************************************************************************/
 
@@ -1394,7 +1355,7 @@ object Share {
                                FG_TIPO_CENTRAL,
                                NOM_FG_TIPO_CENTRAL,
                                nom_marca_km,
-                               cod_marca_km,
+                               cod_marca_km
                              """)
   }
 

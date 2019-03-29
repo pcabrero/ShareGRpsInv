@@ -212,40 +212,7 @@ class ShareTest {
   }
 
 
-  @Test
-  // Match encontrado PERO param_tipologias_duracion NOT CONTAIN cod_tipologia
-  def FN_cod_tp_computo_km_t4(): Unit = {
 
-    // LineaNegocio
-    val LN_cod_comunicacion = 123L
-    val LN_cod_tipologia = 0L
-    val LN_cod_tp_categr_km = 0L
-    val LN_cod_tp_computo_km = 0L
-    val LN_cod_tp_lineanegocio_km = 100L
-    val LN_des_comunicacion = "aaaa"
-    val LN_des_tipologia = "bbbb"
-    val LN_fecha_fin = 2L
-    val LN_fecha_ini = 0L
-    val LN_nom_tp_categr_km = "eeee"
-    val LN_nom_tp_computo_km = "mmm"
-    val LN_nom_tp_lineanegocio_km = "GOL"
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_tipologia = 20L
-    val cod_comunicacion = 15L
-    val param_tipologias_duracion: Array[Int] = Array(4, 5)
-    val param_duracion_iiee: Int = 100
-    val duracion: Int = 120
-
-    assertEquals(0L, Share.FN_cod_tp_computo_km(
-      List(
-        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
-          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
-      ), param_tipologias_duracion, param_duracion_iiee,
-      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
-
-  }
   //*****************************************************************************************
 
   @Test
@@ -352,81 +319,12 @@ class ShareTest {
   }
 
 
-  @Test
-  // Match encontrado PERO param_tipologias_duracion NOT CONTAIN cod_tipologia
-  def FN_nom_tp_computo_km_t4(): Unit = {
 
-    // LineaNegocio
-    val LN_cod_comunicacion = 123L
-    val LN_cod_tipologia = 0L
-    val LN_cod_tp_categr_km = 0L
-    val LN_cod_tp_computo_km = 0L
-    val LN_cod_tp_lineanegocio_km = 100L
-    val LN_des_comunicacion = "aaaa"
-    val LN_des_tipologia = "bbbb"
-    val LN_fecha_fin = 2L
-    val LN_fecha_ini = 0L
-    val LN_nom_tp_categr_km = "eeee"
-    val LN_nom_tp_computo_km = "mmm"
-    val LN_nom_tp_lineanegocio_km = "GOL"
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_tipologia = 20L
-    val cod_comunicacion = 15L
-    val param_tipologias_duracion: Array[Int] = Array(4, 5)
-    val param_duracion_iiee: Int = 100
-    val duracion: Int = 120
-
-    assertEquals("mmm", Share.FN_nom_tp_computo_km(
-      List(
-        LineaNegocio(LN_cod_tp_categr_km, LN_cod_tipologia, LN_cod_tp_lineanegocio_km, LN_fecha_fin, LN_nom_tp_lineanegocio_km,
-          LN_des_comunicacion, LN_des_tipologia, LN_nom_tp_categr_km, LN_fecha_ini, LN_cod_comunicacion, LN_nom_tp_computo_km, LN_cod_tp_computo_km)
-      ), param_tipologias_duracion, param_duracion_iiee,
-      fecha_dia, LN_cod_tipologia, LN_cod_comunicacion, duracion ))
-
-  }
 // >>>>>>> refactoring_inversion
 
 
   //*****************************************************************************************
 
-  @Test
-  // Configuraciones is empty
-  def FN_cod_identif_franja_t1(): Unit = {
-
-    // Configuraciones
-    val Conf_cod_accion = 123L
-    val Conf_cod_anunciante_kantar = 0L
-    val Conf_cod_anunciante_pe = 0L
-    val Conf_cod_cadena = 0L
-    val Conf_cod_campana = 0L
-    val Conf_cod_tipologia = 0L
-    val Conf_cod_programa = 0L
-    val Conf_des_accion = "NO ES FILTRAR"
-    val Conf_des_anunciante_kantar = "mmm"
-    val Conf_des_anunciante_pe = "GOL"
-    val Conf_des_cadena = "2K GAMES"
-    val Conf_des_campana = "FUTBOL:INTERNATIONAL CHAMPIONS CUP(D)"
-    val Conf_des_programa = "CONVENCIONAL"
-    val Conf_des_tipologia = ""
-    val Conf_fecha_fin = 2L
-    val Conf_fecha_ini = 0L
-    val Conf_iiee2_formato = ""
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_anuncio = 0L
-    val cod_anunc = 0L
-    val cod_anunciante_subsidiario = 0L
-    val cod_cadena = 999L
-    val cod_programa = 0L
-
-    assertEquals(0, Share.FN_cod_identif_franja(
-      List(),
-      fecha_dia, cod_programa, cod_cadena))
-
-  }
 
   @Test
   // elem.des_accion != "Filtrar" AND Match encontrado
@@ -515,91 +413,11 @@ class ShareTest {
 
   }
 
-  @Test
-  // elem.des_accion = "Filtrar"
-  def FN_cod_identif_franja_t4(): Unit = {
 
-    // Configuraciones
-    val Conf_cod_accion = 123L
-    val Conf_cod_anunciante_kantar = 0L
-    val Conf_cod_anunciante_pe = 0L
-    val Conf_cod_cadena = 0L
-    val Conf_cod_campana = 0L
-    val Conf_cod_tipologia = 0L
-    val Conf_cod_programa = 0L
-    val Conf_des_accion = "Filtrar"
-    val Conf_des_anunciante_kantar = "mmm"
-    val Conf_des_anunciante_pe = "GOL"
-    val Conf_des_cadena = "2K GAMES"
-    val Conf_des_campana = "FUTBOL:INTERNATIONAL CHAMPIONS CUP(D)"
-    val Conf_des_programa = "CONVENCIONAL"
-    val Conf_des_tipologia = ""
-    val Conf_fecha_fin = 2L
-    val Conf_fecha_ini = 0L
-    val Conf_iiee2_formato = ""
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_anuncio = 0L
-    val cod_anunc = 0L
-    val cod_anunciante_subsidiario = 0L
-    val cod_cadena = 999L
-    val cod_programa = 0L
-
-    val param_cod_campana = 1L
-    val param_cod_anunciante_pe = 1L
-    val param_cod_anunciante_kantar = 1L
-
-    assertEquals(0L, Share.FN_cod_identif_franja(
-      List(
-        Configuraciones(Conf_cod_accion, Conf_cod_anunciante_kantar, Conf_cod_anunciante_pe, Conf_cod_cadena,
-          Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
-          Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
-      ),
-      fecha_dia, cod_programa, cod_cadena))
-
-  }
 
   //*****************************************************************************************
 
-  @Test
-  // Configuraciones is empty
-  def FN_nom_identif_franja_t1(): Unit = {
 
-    // Configuraciones
-    val Conf_cod_accion = 123L
-    val Conf_cod_anunciante_kantar = 0L
-    val Conf_cod_anunciante_pe = 0L
-    val Conf_cod_cadena = 0L
-    val Conf_cod_campana = 0L
-    val Conf_cod_tipologia = 0L
-    val Conf_cod_programa = 0L
-    val Conf_des_accion = "Filtrar"
-    val Conf_des_anunciante_kantar = "mmm"
-    val Conf_des_anunciante_pe = "GOL"
-    val Conf_des_cadena = "2K GAMES"
-    val Conf_des_campana = "FUTBOL:INTERNATIONAL CHAMPIONS CUP(D)"
-    val Conf_des_programa = "CONVENCIONAL"
-    val Conf_des_tipologia = ""
-    val Conf_fecha_fin = 2L
-    val Conf_fecha_ini = 0L
-    val Conf_iiee2_formato = ""
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_anuncio = 0L
-    val cod_anunc = 0L
-    val cod_anunciante_subsidiario = 0L
-    val cod_cadena = 999L
-    val cod_programa = 0L
-    val nom_cadena = "nom_cadena"
-
-    assertEquals("Si la lista Configuraciones está vacia debe devolver el valor por defecto que será una cadena vacia",
-      "", Share.FN_nom_identif_franja(
-      List(),
-      fecha_dia, cod_programa, cod_cadena, nom_cadena))
-
-  }
 
   @Test
   // elem.des_accion != "Filtrar" AND Match encontrado
@@ -689,51 +507,7 @@ class ShareTest {
 
   }
 
-  @Test
-  // elem.des_accion = "Filtrar"
-  def FN_nom_identif_franja_t4(): Unit = {
 
-    // Configuraciones
-    val Conf_cod_accion = 123L
-    val Conf_cod_anunciante_kantar = 0L
-    val Conf_cod_anunciante_pe = 0L
-    val Conf_cod_cadena = 0L
-    val Conf_cod_campana = 0L
-    val Conf_cod_tipologia = 0L
-    val Conf_cod_programa = 0L
-    val Conf_des_accion = "Filtrar"
-    val Conf_des_anunciante_kantar = "mmm"
-    val Conf_des_anunciante_pe = "GOL"
-    val Conf_des_cadena = "2K GAMES"
-    val Conf_des_campana = "FUTBOL:INTERNATIONAL CHAMPIONS CUP(D)"
-    val Conf_des_programa = "CONVENCIONAL"
-    val Conf_des_tipologia = ""
-    val Conf_fecha_fin = 2L
-    val Conf_fecha_ini = 0L
-    val Conf_iiee2_formato = ""
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_anuncio = 0L
-    val cod_anunc = 0L
-    val cod_anunciante_subsidiario = 0L
-    val nom_cadena = "nom_cadena"
-    val cod_cadena = 999L
-    val cod_programa = 0L
-
-    val param_cod_campana = 1L
-    val param_cod_anunciante_pe = 1L
-    val param_cod_anunciante_kantar = 1L
-
-    assertEquals("", Share.FN_nom_identif_franja(
-      List(
-        Configuraciones(Conf_cod_accion, Conf_cod_anunciante_kantar, Conf_cod_anunciante_pe, Conf_cod_cadena,
-          Conf_cod_campana, Conf_cod_programa, Conf_cod_tipologia, Conf_des_accion, Conf_des_anunciante_kantar,
-          Conf_des_anunciante_pe, Conf_des_cadena, Conf_des_campana, Conf_des_programa, Conf_des_tipologia, Conf_fecha_fin, Conf_fecha_ini, Conf_iiee2_formato)
-      ),
-      fecha_dia, cod_programa, cod_cadena, nom_cadena))
-
-  }
 
   //*****************************************************************************************
 
@@ -1797,35 +1571,7 @@ class ShareTest {
 
   //*****************************************************************************************
 
-  @Test
-  // AgrupCadenas is empty
-  def FN_cod_fg_anuncmediaset_t1(): Unit = {
 
-    // AgrupCadenas
-    val AC_des_grupo_n1 = "n1"
-    val AC_des_grupo_n2 = "n2"
-    val AC_des_grupo_n0 = "n0"
-    val AC_cod_forta = 0L
-    val AC_des_forta = "forta"
-    val AC_cod_cadena = 0L
-    val AC_cod_grupo_n0 = 0L
-    val AC_cod_grupo_n2 = 2L
-    val AC_cod_grupo_n1 = 0L
-    val AC_des_cadena = "eeee"
-    val AC_fecha_fin = 2L
-    val AC_fecha_ini = 0L
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_cadena = 10L
-    val cod_anunciante_subsidiario = 15L
-
-
-    assertEquals(-1, Share.FN_cod_fg_anuncmediaset(
-      List(), List(10L, 50L, 30L),
-      fecha_dia, cod_anunciante_subsidiario, cod_cadena ))
-
-  }
 
   @Test
   // Match encontrado
@@ -2289,38 +2035,7 @@ class ShareTest {
 
 //  //*****************************************************************************************
 
-  @Test
-  // AgrupCadenas list is empty.
-  def FN_cod_fg_campemimediaset_t1(): Unit = {
 
-    // AgrupCadenas
-    val AC_des_grupo_n1 = ""
-    val AC_des_grupo_n2 = ""
-    val AC_des_grupo_n0 = ""
-    val AC_fecha_fin = 2L
-    val AC_cod_forta = 0L
-    val AC_des_forta = ""
-    val AC_cod_cadena = 0L
-    val AC_cod_grupo_n0 = 0L
-    val AC_fecha_ini = 0L
-    val AC_cod_grupo_n2 = 0L
-    val AC_cod_grupo_n1 = 0L
-    val AC_des_cadena = ""
-
-    // Codigo de cadenas
-    val codigos_de_cadenas_campemimediaset = List(555L, 666L, 777L)
-
-    // fctd_share_grps
-    val fecha_dia = 1L
-    val cod_anunciante_subsidiario = 555L
-    val cod_cadena = 999L
-
-
-    assertEquals(-1, Share.FN_cod_fg_campemimediaset(
-      List(),
-      codigos_de_cadenas_campemimediaset, fecha_dia, cod_anunciante_subsidiario, cod_cadena  ))
-
-  }
 
   @Test
   // AgrupCadenas list is NOT empty. MATCH
