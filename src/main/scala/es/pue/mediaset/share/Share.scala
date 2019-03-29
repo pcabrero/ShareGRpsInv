@@ -494,14 +494,14 @@ object Share {
 
   def UDF_cod_fg_posicionado(): UserDefinedFunction = {
 
-    udf[Long, Long]( cod_posicion_pb2 => FN_cod_fg_posicionado(cod_posicion_pb2))
+    udf[Long, java.lang.Long]( cod_posicion_pb2 => FN_cod_fg_posicionado(cod_posicion_pb2))
   }
 
 
-  def FN_cod_fg_posicionado(cod_posicion_pb2: Long): Long ={
+  def FN_cod_fg_posicionado(cod_posicion_pb2: java.lang.Long): Long ={
 
     var result = 0L
-    val posicionados : Set[Long] = Set(1,2,3,997,998,999)
+    val posicionados : Set[java.lang.Long] = Set(1L,2L,3L,997L,998L,999L)
 
     if (posicionados.contains(cod_posicion_pb2)){
       result = 1L
@@ -647,7 +647,7 @@ object Share {
     udf[String, java.lang.Long, java.lang.Long, java.lang.Long, String]((fecha_dia, cod_programa, cod_cadena, nom_cadena) => FN_nom_identif_franja(BC_configuraciones_list.value, fecha_dia, cod_programa, cod_cadena, nom_cadena ))
   }
 
-  def FN_nom_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: Long,cod_programa: Long, cod_cadena: Long, nom_cadena: String): String = {
+  def FN_nom_identif_franja(configuraciones_list: List[Configuraciones], fecha_dia: java.lang.Long, cod_programa: java.lang.Long, cod_cadena: java.lang.Long, nom_cadena: String): String = {
     var result = nom_cadena
     for(elem <- configuraciones_list){
       if(elem.des_accion != "Filtrar") {
@@ -828,7 +828,7 @@ object Share {
 
   def UDF_cod_fg_boing(BC_agrupCadenas_list: Broadcast[List[AgrupCadenas]], BC_codigos_de_cadenas_boing: Broadcast[List[Long]]): UserDefinedFunction = {
 
-    udf[Int, Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_cadena, cod_anuncio ) => FN_cod_fg_boing(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_boing.value, fecha_dia, cod_cadena, cod_anuncio ))
+    udf[Int, java.lang.Long, java.lang.Long, java.lang.Long]( (fecha_dia, cod_cadena, cod_anuncio ) => FN_cod_fg_boing(BC_agrupCadenas_list.value, BC_codigos_de_cadenas_boing.value, fecha_dia, cod_cadena, cod_anuncio ))
   }
 
   def FN_cod_fg_boing(agrupCadenas_list: List[AgrupCadenas], codigos_de_cadenas_boing_list: List[Long], fecha_dia: java.lang.Long, cod_cadena: java.lang.Long, cod_anuncio: java.lang.Long ): Int = {
