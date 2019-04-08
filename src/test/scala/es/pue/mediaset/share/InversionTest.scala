@@ -7,6 +7,7 @@ class InversionTest {
 
   // TODO Test's cod_fg_cadmediaset ----------------------------------------------------------------------
 
+  /*
   @Test
   // Contains cod_cadena
   def FN_cod_fg_cadmediaset_t1(): Unit = {
@@ -23,7 +24,9 @@ class InversionTest {
       cod_cadena))
   }
 
+  */
 
+  /*
   @Test
    // NOT contains cod_cadena
   def FN_cod_fg_cadmediaset_t2(): Unit = {
@@ -39,7 +42,7 @@ class InversionTest {
       cod_cadena))
 
   }
-
+  */
 
   // TODO Test's cod_fg_prodmediaset ---------------------------------------------------------------------
 /*

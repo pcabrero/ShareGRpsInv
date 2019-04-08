@@ -21,7 +21,8 @@ object Share {
 
   //***************************************************
   // Parámetros del proceso en linea de comandos
-  private var process_month: String = _
+  private var initial_process_month: String = _
+  private var end_process_month: String = _
   private var parametrization_filename: String = _
 
   //***************************************************
@@ -69,7 +70,9 @@ object Share {
 
     cfg = new ConfigArgs(args)
 
-    process_month = cfg.getMesEnCurso
+    initial_process_month = cfg.getInitialMonth
+
+    end_process_month = cfg.getEndMonth
 
     parametrization_filename = cfg.getParametrizationFileName
 
@@ -141,7 +144,7 @@ object Share {
 
     /************************************************************************************************************/
 
-    val tmp_fcts_fecha_dia: DataFrame = get_tmp_fcts_fecha_dia(spark, process_month, parametrizationCfg)
+    val tmp_fcts_fecha_dia: DataFrame = get_tmp_fcts_fecha_dia(spark, parametrizationCfg)
     tmp_fcts_fecha_dia.createOrReplaceTempView("tmp_fcts_fecha_dia")
 
     val mercado_lineal_dia_agregado: DataFrame = get_mercado_lineal_dia_agregado(spark).withColumn("fecha_dia", unix_timestamp(col("fecha_dia"), "yyyy-MM-dd").cast(TimestampType))
@@ -1041,7 +1044,7 @@ object Share {
     * @param spark: Instanciación del objeto spark para poder acceder a sus métodos de SQL
     * @return DataFrame obtenido al realizar la query sobre la tabla: mediaset.fcts_mercado_lineal
     */
-  def get_tmp_fcts_fecha_dia(spark: SparkSession, process_month: String, parametrizationCfg: Properties): DataFrame = {
+  def get_tmp_fcts_fecha_dia(spark: SparkSession, parametrizationCfg: Properties): DataFrame = {
 
     spark.sql(s"""
       SELECT
@@ -1150,9 +1153,8 @@ object Share {
         FROM ${fcts_mercado_lineal.getDBTable}
         WHERE nom_sect_geog != "PBC"
           AND cod_target IN (5, 3, 2)
-          --AND substr(dia_progrmd, 0, 10) >= "${utils.getFechaActual}-01" AND substr(dia_progrmd, 0, 10) <= "${utils.getFechaActual}-31"
-          AND substr(dia_progrmd, 0, 10) >= "1999-01-01" AND substr(dia_progrmd, 0, 10) <= "2099-01-31"
-    """)
+          AND substr(dia_progrmd, 0, 10) >= """" + initial_process_month +"""-01" AND substr(dia_progrmd, 0, 10) <= """"+end_process_month+"""-31""""
+    )
   }
 
 

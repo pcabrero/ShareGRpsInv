@@ -19,14 +19,16 @@ class ConfigArgs(args: Array[String]) extends Serializable {
   // tupla (opt, longOpt)
   // Por ejemplo ("h", "help") corresponde a -h y --help
   private val OPT_HELP = ("h", "help")
-  private val OPT_PROCESS_MONTH = ("pm", "process-month")
+  private val OPT_INITIAL_PROCESS_MONTH = ("pm", "process-initial-month")
+  private val OPT_END_PROCESS_MONTH = ("pm", "process-end-month")
   private val OPT_PARAMETRIZATION_FILE_NAME = (null, "parametrization-filename")
   private val OPT_PRO = (null, "pro")
   private val OPT_PROCESS = (null, "process")
 
   // Valores por defecto
   private var MES_EN_CURSO = ""
-  private var YEAR_MONTH = utils.getFechaActual
+  private var YEAR_INITIAL_MONTH = "1999-01"
+  private var YEAR_END_MONTH = "2199-12"
   private var help = false
 //  private var MES_EN_CURSO_POR_DEFECTO: String  = ""
   private var PARAMETRIZATION_FILE_NAME = ""
@@ -38,8 +40,11 @@ class ConfigArgs(args: Array[String]) extends Serializable {
   options.addOption(OPT_HELP._1, OPT_HELP._2, false,
     "Mostrar la ayuda")
 
-  options.addOption(OPT_PROCESS_MONTH._1, OPT_PROCESS_MONTH._2, true,
-    "Introduce el mes a procesar, por defecto sera el mes en curso o mes vivo")
+  options.addOption(OPT_INITIAL_PROCESS_MONTH._1, OPT_INITIAL_PROCESS_MONTH._2, true,
+    "Introduce el mes inicial a procesar, por defecto sera el mes en curso o mes vivo")
+
+  options.addOption(OPT_END_PROCESS_MONTH._1, OPT_END_PROCESS_MONTH._2, true,
+    "Introduce el mes final a procesar, por defecto sera el mes en curso o mes vivo")
 
   options.addOption(OPT_PARAMETRIZATION_FILE_NAME._1, OPT_PARAMETRIZATION_FILE_NAME._2, true,
     "Introduce el nombre del fichero properties. Parametro obligatorio para la ejecución del proceso de PrepararDatos")
@@ -78,7 +83,9 @@ class ConfigArgs(args: Array[String]) extends Serializable {
     // Si no existen se deja el valor por defecto (si se contempla)
     if (cmd.hasOption(OPT_HELP._1) && args.length == 1) help = true
 
-    if (cmd.hasOption(OPT_PROCESS_MONTH._2))   YEAR_MONTH = cmd.getOptionValue(OPT_PROCESS_MONTH._2)
+    if (cmd.hasOption(OPT_INITIAL_PROCESS_MONTH._2))   YEAR_INITIAL_MONTH = cmd.getOptionValue(OPT_INITIAL_PROCESS_MONTH._2)
+
+    if (cmd.hasOption(OPT_END_PROCESS_MONTH._2))   YEAR_END_MONTH = cmd.getOptionValue(OPT_END_PROCESS_MONTH._2)
 
     if (cmd.hasOption(OPT_PARAMETRIZATION_FILE_NAME._2)) PARAMETRIZATION_FILE_NAME = cmd.getOptionValue(OPT_PARAMETRIZATION_FILE_NAME._2)
 
@@ -90,9 +97,11 @@ class ConfigArgs(args: Array[String]) extends Serializable {
 
   def mostrarAyuda: Boolean = help
 
-  def getMesEnCurso: String = YEAR_MONTH
+  def getInitialMonth: String = YEAR_INITIAL_MONTH
 
-  def getProcessMonth: String = YEAR_MONTH
+  def getEndMonth: String = YEAR_END_MONTH
+
+  def getProcessMonth: String = YEAR_INITIAL_MONTH
 
   def getParametrizationFileName: String = PARAMETRIZATION_FILE_NAME
 
