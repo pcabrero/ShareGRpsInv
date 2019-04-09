@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f9c55609-fa71-434b-bbe3-a43434f2b822" name="Default Changelist" comment="">
+    <list default="true" id="f9c55609-fa71-434b-bbe3-a43434f2b822" name="Default Changelist" comment="Modificación de variables a tipo java.lang.Long de algunos Longs que pueden dar problemas debido a nulos">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Salesforce.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Salesforce.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Share.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Share.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionColumnFunctions.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionColumnFunctions.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionSQLstrs.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionSQLstrs.scala" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -18,17 +18,21 @@
     <session id="875006724">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="13" />
+          <entry key="project.closed" value="27" />
           <entry key="project.open.time.1" value="2" />
+          <entry key="project.open.time.10" value="1" />
           <entry key="project.open.time.11" value="1" />
-          <entry key="project.open.time.12" value="2" />
-          <entry key="project.open.time.13" value="2" />
-          <entry key="project.open.time.14" value="3" />
+          <entry key="project.open.time.12" value="3" />
+          <entry key="project.open.time.13" value="5" />
+          <entry key="project.open.time.14" value="5" />
+          <entry key="project.open.time.16" value="1" />
+          <entry key="project.open.time.18" value="2" />
           <entry key="project.open.time.19" value="1" />
-          <entry key="project.open.time.21" value="1" />
+          <entry key="project.open.time.20" value="2" />
+          <entry key="project.open.time.21" value="2" />
           <entry key="project.open.time.5" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="14" />
+          <entry key="project.opened" value="27" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -40,9 +44,11 @@
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="CLASS" value="1" />
-          <entry key="Properties" value="1" />
-          <entry key="Scala" value="31" />
+          <entry key="CLASS" value="3" />
+          <entry key="PLAIN_TEXT" value="3" />
+          <entry key="Properties" value="2" />
+          <entry key="SQL" value="1" />
+          <entry key="Scala" value="65" />
           <entry key="XML" value="3" />
         </counts>
       </usages-collector>
@@ -53,8 +59,8 @@
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="104" />
-          <entry key="Scala" value="7710" />
+          <entry key="PLAIN_TEXT" value="878" />
+          <entry key="Scala" value="14647" />
           <entry key="XML" value="42" />
         </counts>
       </usages-collector>
@@ -67,32 +73,59 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionSQLstrs.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-541">
-              <caret line="147" column="49" selection-start-line="147" selection-start-column="38" selection-end-line="147" selection-end-column="49" />
+            <state relative-caret-position="296">
+              <caret line="150" column="48" lean-forward="true" selection-start-line="150" selection-start-column="48" selection-end-line="155" selection-end-column="113" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionColumnFunctions.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="32">
+              <caret line="63" column="6" selection-start-line="63" selection-start-column="6" selection-end-line="63" selection-end-column="6" />
               <folding>
-                <element signature="e#31#58#0" expanded="true" />
+                <element signature="e#31#82#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Entity.scala">
+        <entry file="file://$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/InversionTest.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="867">
-              <caret line="60" column="6" selection-start-line="60" selection-start-column="6" selection-end-line="60" selection-end-column="6" />
+            <state relative-caret-position="731">
+              <caret line="44" column="4" selection-start-line="44" selection-start-column="4" selection-end-line="44" selection-end-column="4" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Salesforce.scala">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Main.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6188">
-              <caret line="368" column="3" selection-start-line="368" selection-start-column="3" selection-end-line="368" selection-end-column="3" />
+            <state relative-caret-position="136">
+              <caret line="8" column="24" selection-start-line="8" selection-start-column="24" selection-end-line="8" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/ConfigArgs.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="306">
+              <caret line="21" column="71" selection-start-line="21" selection-start-column="50" selection-end-line="21" selection-end-column="71" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Utils.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="391">
+              <caret line="25" column="6" selection-start-line="25" selection-start-column="6" selection-end-line="25" selection-end-column="6" />
             </state>
           </provider>
         </entry>
@@ -100,8 +133,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Share.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="112">
-              <caret line="171" column="397" selection-start-line="171" selection-start-column="397" selection-end-line="171" selection-end-column="397" />
+            <state relative-caret-position="455">
+              <caret line="72" column="32" selection-start-line="72" selection-start-column="32" selection-end-line="72" selection-end-column="32" />
               <folding>
                 <element signature="e#31#58#0" expanded="true" />
               </folding>
@@ -110,55 +143,25 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/com/springml/salesforce/DataWriter.scala">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="29" column="6" selection-start-line="29" selection-start-column="6" selection-end-line="29" selection-end-column="6" />
+            <state relative-caret-position="-9">
+              <caret line="124" column="75" lean-forward="true" selection-start-line="124" selection-start-column="75" selection-end-line="124" selection-end-column="75" />
+              <folding>
+                <element signature="e#31#58#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/com/springml/salesforce/DefaultSource.scala">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/UtilsInversion.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="35" column="6" selection-start-line="35" selection-start-column="6" selection-end-line="35" selection-end-column="6" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/com/springml/salesforce/BulkRelation.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-136">
-              <caret line="26" column="11" selection-start-line="26" selection-start-column="11" selection-end-line="26" selection-end-column="11" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/com/springml/salesforce/InferSchema.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1266">
-              <caret line="16" column="7" selection-start-line="16" selection-start-column="7" selection-end-line="16" selection-end-column="7" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/com/springml/salesforce/Utils.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1224">
-              <caret line="40" column="7" selection-start-line="40" selection-start-column="7" selection-end-line="40" selection-end-column="7" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/com/springml/salesforce/SFObjectWriter.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-749">
-              <caret line="16" column="6" selection-start-line="16" selection-start-column="6" selection-end-line="16" selection-end-column="6" />
+            <state relative-caret-position="527">
+              <caret line="34" column="6" selection-start-line="34" selection-start-column="6" selection-end-line="34" selection-end-column="6" />
+              <folding>
+                <element signature="e#31#90#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -167,36 +170,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>importe_pase</find>
-      <find>BC_costebase_marca</find>
-      <find>por_cualmediaset_calc</find>
-      <find>BC_por_cualgrupocadena_calc</find>
-      <find>por_cualgrupocadena_calc</find>
-      <find>POR_POSMEDIASET</find>
-      <find>BC_coef_cadena_calc</find>
-      <find>posmediaset_calc</find>
-      <find>process</find>
-      <find>BC_cadenas_mediaset_grupo_n1</find>
-      <find>COD_PERIODO</find>
-      <find>cod_target</find>
-      <find>des_day_part</find>
-      <find>cod_sec</find>
-      <find>cod_cadena</find>
-      <find>BC_por_pt_grupocadena_calc</find>
-      <find>BC_por_cual</find>
-      <find>por_posgrup</find>
-      <find>BC_por_posgrupocadena_n2_calc</find>
-      <find>por_posmediaset</find>
-      <find>BC_por_posmediaset_calc</find>
-      <find>getColumn_por_posGrupoCadena_n1</find>
-      <find>por_posGrupoCadena</find>
-      <find>fctd_share_grps</find>
-      <find>BC_importe_pase</find>
-      <find>sect_geog</find>
-      <find>pos_pb</find>
-      <find>cualitativo</find>
-      <find>fg_filtrado</find>
-      <find>cod_anunciante</find>
+      <find>coef_pt</find>
+      <find>dif_por_primetime</find>
+      <find>por_pt_grupocadena</find>
+      <find>with</find>
+      <find>cast</find>
+      <find>parametrizationCfg</find>
+      <find>coef_cual</find>
+      <find>process_month</find>
+      <find>º</find>
+      <find>parametrization_filename</find>
+      <find>pt_cual</find>
+      <find>por_cual</find>
+      <find>cuota</find>
+      <find>por_pos</find>
+      <find>por_posme</find>
+      <find>coef_eve</find>
+      <find>por_pt</find>
+      <find>por_pt_media</find>
+      <find>por_pt_grupo</find>
+      <find>por_cualme</find>
+      <find>por_cualgrupo</find>
+      <find>por_posmedia</find>
+      <find>por_posgrupo</find>
+      <find>getProcessMonth</find>
+      <find>getMesEnCurso</find>
+      <find>cuota_por</find>
+      <find>coef_corrector</find>
+      <find>fecha_dia</find>
+      <find>coef_cadena</find>
+      <find>coef_anunciante</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -243,12 +246,19 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/ShareTest.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Utils.scala" />
         <option value="$PROJECT_DIR$/pom.xml" />
-        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Share.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Salesforce.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/new_Inversion.scala" />
+        <option value="$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/ShareTest.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/UtilsInversion.scala" />
+        <option value="$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/InversionTest.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/ConfigArgs.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/test.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Share.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionSQLstrs.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionColumnFunctions.scala" />
       </list>
     </option>
   </component>
@@ -323,13 +333,26 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="scala" type="462c0819:PsiDirectoryNode" />
-              <item name="salesforce" type="462c0819:PsiDirectoryNode" />
+              <item name="share" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="mediaset-share" type="b2602c69:ProjectViewProjectNode" />
               <item name="sofia-share-e-inversiones" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="mediaset-share" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sofia-share-e-inversiones" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+              <item name="scala" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="mediaset-share" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sofia-share-e-inversiones" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
               <item name="scala" type="462c0819:PsiDirectoryNode" />
               <item name="share" type="462c0819:PsiDirectoryNode" />
             </path>
@@ -342,12 +365,12 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1553516137727" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1554701825990" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="project.structure.last.edited" value="Global Libraries" />
+    <property name="project.structure.last.edited" value="SDKs" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
-    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+    <property name="settings.editor.selected.configurable" value="MavenSettings" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -439,14 +462,55 @@
       <option name="project" value="LOCAL" />
       <updated>1553252373314</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Añadida la columna cod_fg_cadmediaset de Inversion a Share">
+      <created>1553516239141</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1553516239141</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Modificadas varias columnas Inversion">
+      <created>1553602030588</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1553602030588</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Añadidas las columnas siguientes a Share Grps: FG_TIPO_ANUNC, NOM_FG_TIPO_ANUNC, FG_TIPO_CENTRAL, NOM_FG_TIPO_CENTRAL, nom_marca_km, cod_marca_km">
+      <created>1553702199199</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1553702199199</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Resuelto un bug que provocaba que el valor por defecto en algunas columnas sobreescribiese el valor otorgado por el filtro. Resuelto un bug que provocaba que si una de las columnas utilizadas por el metodo de creación de columna era nula, el valor de resultado pasaba a ser nulo.">
+      <created>1553847355422</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1553847355422</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Modificación de variables a tipo java.lang.Long de algunos Longs que pueden dar problemas debido a nulos">
+      <created>1553854065808</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1553854065808</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Nueva version de Share Inversion. Añadido filtro de ejecución temporal, esto permite ejecutar el codigo en un intervalo de meses concreto">
+      <created>1554701767412</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1554701767412</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49780703" visible="true" weight="0.16680162" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49780703" visible="true" weight="0.0" />
       <window_info id="Structure" order="1" sideWeight="0.502193" side_tool="true" weight="0.28502023" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -455,7 +519,7 @@
       <window_info id="Favorites" order="6" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.13518518" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.11111111" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -473,47 +537,55 @@
       <window_info anchor="right" id="Theme Preview" order="5" />
       <window_info anchor="right" id="Capture Analysis" order="6" />
       <window_info anchor="right" id="Palette&#9;" order="7" />
-      <window_info anchor="right" id="Maven Projects" order="8" visible="true" weight="0.14331985" />
+      <window_info active="true" anchor="right" id="Maven Projects" order="8" visible="true" weight="0.1465587" />
     </layout>
+    <layout-to-restore>
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49780703" visible="true" weight="0.2194332" />
+      <window_info id="Structure" order="1" sideWeight="0.502193" side_tool="true" weight="0.28502023" />
+      <window_info id="Image Layers" order="2" />
+      <window_info id="Designer" order="3" />
+      <window_info id="UI Designer" order="4" />
+      <window_info id="Capture Tool" order="5" />
+      <window_info id="Favorites" order="6" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.0" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Terminal" order="7" weight="0.3288889" />
+      <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" order="9" weight="0.5037037" />
+      <window_info anchor="bottom" id="SBT Console" order="10" />
+      <window_info anchor="bottom" id="Messages" order="11" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Palette" order="3" />
+      <window_info anchor="right" id="Maven" order="4" />
+      <window_info anchor="right" id="Theme Preview" order="5" />
+      <window_info anchor="right" id="Capture Analysis" order="6" />
+      <window_info anchor="right" id="Palette&#9;" order="7" />
+      <window_info anchor="right" id="Maven Projects" order="8" visible="true" weight="0.16923077" />
+    </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Añadidas nuevas columnas a Share-grps y cambio en el funcional de columnas ya existentes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Añadidas nuevas columnas a Share-grps y cambio en el funcional de columnas ya existentes" />
+    <MESSAGE value="Añadida la columna cod_fg_cadmediaset de Inversion a Share" />
+    <MESSAGE value="Modificadas varias columnas Inversion" />
+    <MESSAGE value="Añadidas las columnas siguientes a Share Grps: FG_TIPO_ANUNC, NOM_FG_TIPO_ANUNC, FG_TIPO_CENTRAL, NOM_FG_TIPO_CENTRAL, nom_marca_km, cod_marca_km" />
+    <MESSAGE value="Resuelto un bug que provocaba que el valor por defecto en algunas columnas sobreescribiese el valor otorgado por el filtro. Resuelto un bug que provocaba que si una de las columnas utilizadas por el metodo de creación de columna era nula, el valor de resultado pasaba a ser nulo." />
+    <MESSAGE value="Modificación de variables a tipo java.lang.Long de algunos Longs que pueden dar problemas debido a nulos" />
+    <MESSAGE value="Nueva version de Share Inversion. Añadido filtro de ejecución temporal, esto permite ejecutar el codigo en un intervalo de meses concreto" />
+    <option name="LAST_COMMIT_MESSAGE" value="Nueva version de Share Inversion. Añadido filtro de ejecución temporal, esto permite ejecutar el codigo en un intervalo de meses concreto" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/InversionTest.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-9531">
-          <caret line="5" column="6" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/ShareTest.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1207">
-          <caret line="1691" column="8" selection-start-line="1691" selection-start-column="8" selection-end-line="1691" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mediaset-share.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="10" column="41" selection-start-line="10" selection-start-column="41" selection-end-line="10" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/run.sh">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Utils.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
@@ -526,20 +598,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
           <caret line="2" column="21" selection-start-line="2" selection-start-column="21" selection-end-line="2" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Main.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="24" selection-start-line="8" selection-start-column="24" selection-end-line="8" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/ConfigArgs.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-691">
-          <caret line="21" column="25" selection-start-line="21" selection-start-column="18" selection-end-line="21" selection-end-column="25" />
         </state>
       </provider>
     </entry>
@@ -578,44 +636,145 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/mediaset-share.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="41" selection-start-line="10" selection-start-column="41" selection-end-line="10" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/springml/salesforce/SFObjectWriter.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-749">
+        <state relative-caret-position="170">
           <caret line="16" column="6" selection-start-line="16" selection-start-column="6" selection-end-line="16" selection-end-column="6" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Share.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="112">
-          <caret line="171" column="397" selection-start-line="171" selection-start-column="397" selection-end-line="171" selection-end-column="397" />
-          <folding>
-            <element signature="e#31#58#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/new_Inversion.scala" />
+    <entry file="file://$PROJECT_DIR$/ddl/share_grps_cols.csv">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Entity.scala">
+    <entry file="file://$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/ShareTest.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="867">
-          <caret line="60" column="6" selection-start-line="60" selection-start-column="6" selection-end-line="60" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-541">
-          <caret line="147" column="49" selection-start-line="147" selection-start-column="38" selection-end-line="147" selection-end-column="49" />
-          <folding>
-            <element signature="e#31#58#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="2329">
+          <caret line="139" selection-start-line="139" selection-end-line="139" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Salesforce.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6188">
-          <caret line="368" column="3" selection-start-line="368" selection-start-column="3" selection-end-line="368" selection-end-column="3" />
+        <state relative-caret-position="476">
+          <caret line="32" column="29" selection-start-line="32" selection-start-column="6" selection-end-line="32" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ddl/share_grps.sql">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ddl/configuraciones.hql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="14" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Entity.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="12" column="12" selection-start-line="12" selection-start-column="12" selection-end-line="12" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.11.0/scala-library-2.11.0.jar!/scala/Tuple2.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="83" selection-start-line="2" selection-start-column="83" selection-end-line="2" selection-end-column="83" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/commons-cli/commons-cli/1.4/commons-cli-1.4.jar!/org/apache/commons/cli/Options.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="24" column="11" selection-start-line="24" selection-start-column="11" selection-end-line="24" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/test.scala" />
+    <entry file="file://$PROJECT_DIR$/src/test/scala/es/pue/mediaset/share/InversionTest.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="731">
+          <caret line="44" column="4" selection-start-line="44" selection-start-column="4" selection-end-line="44" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Utils.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="391">
+          <caret line="25" column="6" selection-start-line="25" selection-start-column="6" selection-end-line="25" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/UtilsInversion.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="527">
+          <caret line="34" column="6" selection-start-line="34" selection-start-column="6" selection-end-line="34" selection-end-column="6" />
+          <folding>
+            <element signature="e#31#90#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/ConfigArgs.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="21" column="71" selection-start-line="21" selection-start-column="50" selection-end-line="21" selection-end-column="71" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Share.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="455">
+          <caret line="72" column="32" selection-start-line="72" selection-start-column="32" selection-end-line="72" selection-end-column="32" />
+          <folding>
+            <element signature="e#31#58#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Main.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="8" column="24" selection-start-line="8" selection-start-column="24" selection-end-line="8" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionColumnFunctions.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="32">
+          <caret line="63" column="6" selection-start-line="63" selection-start-column="6" selection-end-line="63" selection-end-column="6" />
+          <folding>
+            <element signature="e#31#82#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/Inversion.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-9">
+          <caret line="124" column="75" lean-forward="true" selection-start-line="124" selection-start-column="75" selection-end-line="124" selection-end-column="75" />
+          <folding>
+            <element signature="e#31#58#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/es/pue/mediaset/share/InversionSQLstrs.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="296">
+          <caret line="150" column="48" lean-forward="true" selection-start-line="150" selection-start-column="48" selection-end-line="155" selection-end-column="113" />
         </state>
       </provider>
     </entry>
@@ -677,7 +836,6 @@
             <option name="proportions">
               <list>
                 <option value="0.2" />
-                <option value="0.6" />
               </list>
             </option>
           </splitter-proportions>
@@ -707,5 +865,10 @@
         </settings>
       </state>
     </states>
+  </component>
+  <component name="mavenExecuteGoalHistory">
+    <option value="$PROJECT_DIR$" />
+    <option value="install -DskipTests" />
+    <option value="install -DskipTest" />
   </component>
 </project>

@@ -381,11 +381,22 @@ object InversionColumnFunctions {
   /************************************************************************************************************/
 
 
-  def getColumn_coef_cadena( originDF: DataFrame, BC_coef_cadena_cacl1: Broadcast[Map[Long, Double]],BC_coef_cadena_cacl2: Broadcast[Map[Long, Double]]): DataFrame = {
+  def getColumn_coef_cadena( spark: SparkSession, originDF: DataFrame,  coef_cadena_cacl1: DataFrame, coef_cadena_cacl2: DataFrame): DataFrame = {
 
-    originDF.withColumn("coef_cadena", UDF_coef_cadena(BC_coef_cadena_cacl1,BC_coef_cadena_cacl2)(col("cod_cadena"),col("cod_fg_forta")))
+    //originDF.withColumn("coef_cadena", UDF_coef_cadena(BC_coef_cadena_cacl1,BC_coef_cadena_cacl2)(col("cod_cadena"),col("cod_fg_forta")))
+
+    import spark.implicits._
+    val coef_cadena_df1 = originDF.join(coef_cadena_cacl1, Seq("cod_cadena"),"left_outer")
+    val coef_cadena_df2 = coef_cadena_df1.join(coef_cadena_cacl2,Seq("cod_cadena"),"left_outer")
+    val result = coef_cadena_df2.withColumn("coef_cadena", when($"cod_cadena" === 30006 and $"cod_fg_forta" === 0, $"coef_cadena1")
+      .when($"cod_cadena" !== 30006, $"coef_cadena2").otherwise(1D))
+      .withColumn("coef_cadena", when($"coef_cadena".isNull, 1D).otherwise($"coef_cadena"))
+        .drop("coef_cadena1")
+        .drop("coef_cadena2")
+    result
   }
 
+  /*
   def UDF_coef_cadena(BC_coef_cadena_cacl: Broadcast[Map[Long, Double]], BC_coef_cadena_cacl2: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
 
     udf[Double, java.lang.Long, java.lang.Long]( (cod_cadena,cod_fg_forta) => FN_coef_cadena(BC_coef_cadena_cacl.value, BC_coef_cadena_cacl2.value, cod_cadena, cod_fg_forta))
@@ -403,6 +414,7 @@ object InversionColumnFunctions {
 
     result
   }
+  */
 
   /************************************************************************************************************/
   /**
@@ -443,10 +455,16 @@ object InversionColumnFunctions {
 
   /************************************************************************************************************/
 
-  def getColumn_coef_anunciante(originDF: DataFrame, BC_coef_anunciante_calc: Broadcast[Map[Long, Double]]) : DataFrame = {
-    originDF.withColumn("coef_anunciante", UDF_coef_anunciante(BC_coef_anunciante_calc)(col("cod_anunc"), col("cod_anunciante_subsidiario")))
+  def getColumn_coef_anunciante(spark: SparkSession, originDF: DataFrame, coef_anunciante_calc: DataFrame) : DataFrame = {
+
+    import spark.implicits._
+    originDF.alias("a").join(coef_anunciante_calc.alias("b"), originDF("cod_anunc") === coef_anunciante_calc("cod_cadena") || originDF("cod_anunciante_subsidiario") === coef_anunciante_calc("cod_cadena"), "left_outer")
+      .withColumn("coef_anunciante", when($"coef_anunciante".isNull, 1D).otherwise($"coef_anunciante"))
+      .drop("cod_cadena")
+    //originDF.withColumn("coef_anunciante", UDF_coef_anunciante(BC_coef_anunciante_calc)(col("cod_anunc"), col("cod_anunciante_subsidiario")))
   }
 
+  /*
   def UDF_coef_anunciante(BC_coef_anunciante_calc: Broadcast[Map[Long, Double]]): UserDefinedFunction = {
     udf[Double, java.lang.Long, java.lang.Long]( (cod_anunc, cod_anunciante_subsidiario) => FN_coef_anunciante(BC_coef_anunciante_calc.value, cod_anunc, cod_anunciante_subsidiario))
   }
@@ -461,6 +479,7 @@ object InversionColumnFunctions {
     result
 
   }
+  */
 
   /************************************************************************************************************/
 

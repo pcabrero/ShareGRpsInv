@@ -167,22 +167,24 @@ object Inversion {
     val BC_indice_coeficiente_forta: Broadcast[Double] = spark.sparkContext.broadcast(indice_coeficiente_forta)
 
     /************************************************************************************************************/
-
+    /*
     val coef_cadena_calc_1: Map[Long, Double] = spark.sql(tableCollection.coef_cadena_calc_1_sqlString.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+
 
     val BC_coef_cadena_calc_1: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_cadena_calc_1)
     // Columna Coef Cadena
     val coef_cadena_calc_2: Map[Long, Double] = spark.sql(tableCollection.coef_cadena_calc_2_sqlString.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
     val BC_coef_cadena_calc_2: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_cadena_calc_2)
+    */
 
     /************************************************************************************************************/
 
     // Columna COEF_ANUNCIANTET
 
-    val coef_anunciante_calc: Map[Long, Double] = spark.sql(tableCollection.coef_anunciante_calc_sqlString.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
+    //val coef_anunciante_calc: Map[Long, Double] = spark.sql(tableCollection.coef_anunciante_calc_sqlString.stripMargin).collect().map( x => x(0).asInstanceOf[Long] -> x(1).asInstanceOf[Double]).toMap
 
-    val BC_coef_anunciante_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_anunciante_calc)
+    //val BC_coef_anunciante_calc: Broadcast[Map[Long, Double]] = spark.sparkContext.broadcast(coef_anunciante_calc)
 
     /************************************************************************************************************/
 
@@ -266,7 +268,7 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val fctd_share_inv_col_20: DataFrame = InversionColumnFunctions.getColumn_coef_cadena( fctd_share_inv_col_19, BC_coef_cadena_calc_1, BC_coef_cadena_calc_2)
+    val fctd_share_inv_col_20: DataFrame = InversionColumnFunctions.getColumn_coef_cadena(spark, fctd_share_inv_col_19, spark.sql(tableCollection.coef_cadena_calc_1_sqlString.stripMargin), spark.sql(tableCollection.coef_cadena_calc_2_sqlString.stripMargin))
 
 
 
@@ -283,7 +285,7 @@ object Inversion {
 
     /************************************************************************************************************/
 
-    val fctd_share_inv_col_23: DataFrame = InversionColumnFunctions.getColumn_coef_anunciante( fctd_share_inv_col_22, BC_coef_anunciante_calc)
+    val fctd_share_inv_col_23: DataFrame = InversionColumnFunctions.getColumn_coef_anunciante(spark, fctd_share_inv_col_22, spark.sql(tableCollection.coef_anunciante_calc_sqlString.stripMargin))
 
 
     /************************************************************************************************************/

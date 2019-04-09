@@ -194,7 +194,7 @@ class InversionSQLstrs(parametrizationCfg: Properties, initialMonth: String, end
                                                       |WHERE coeficiente = "FORTA" LIMIT 1
        """
   val coef_cadena_calc_1_sqlString: String = s"""
-                                                |SELECT tb_coeficientes.cod_cadena, tb_coeficientes.indice
+                                                |SELECT tb_coeficientes.cod_cadena, tb_coeficientes.indice as coef_cadena1
                                                 |FROM tb_coeficientes, $fctm_share_inv
                                                 |WHERE tb_coeficientes.coeficiente = "CADENA_N2"
                                                 |AND tb_coeficientes.cod_cadena = 30006
@@ -202,7 +202,7 @@ class InversionSQLstrs(parametrizationCfg: Properties, initialMonth: String, end
                                                 |AND $fctm_share_inv.aniomes <= year(tb_coeficientes.fecha_ini)&month(tb_coeficientes.fecha_ini)
        """
   val coef_cadena_calc_2_sqlString: String = s"""
-                                                |SELECT $dim_agrup_cadenas.cod_cadena, tb_coeficientes.indice
+                                                |SELECT $dim_agrup_cadenas.cod_cadena, tb_coeficientes.indice as coef_cadena2
                                                 |FROM tb_coeficientes, ${dim_agrup_cadenas.getDBTable}, $fctm_share_inv
                                                 |WHERE tb_coeficientes.coeficiente = "CADENA_N2"
                                                 |AND tb_coeficientes.cod_cadena <> 30006
@@ -211,7 +211,7 @@ class InversionSQLstrs(parametrizationCfg: Properties, initialMonth: String, end
                                                 |AND $fctm_share_inv.aniomes <= year(tb_coeficientes.fecha_ini)&month(tb_coeficientes.fecha_ini)
        """
   val coef_anunciante_calc_sqlString: String = s"""
-                                                  |SELECT tc.cod_cadena, tc.indice
+                                                  |SELECT tc.cod_cadena, tc.indice as coef_anunciante
                                                   |FROM $tb_coeficientes AS tc, $fctm_share_inv AS inv
                                                   |WHERE tc.coeficiente = "ANUNCIANTE"
                                                   |AND inv.aniomes >= year(tc.fecha_ini)&month(tc.fecha_ini)
